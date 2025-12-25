@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Galaxy | AI-Enhanced Multi-Chain DeFi</title>
+    <meta name="description" content="Cross-chain yield optimization powered by AI and Reactive Smart Contracts">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="maintenance.css">
+</head>
+
+<body>
+    <!-- Animated Background -->
+    <div class="bg-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">
+            <div class="logo-icon">⬡</div>
+            <span class="logo-text">Nexus Galaxy</span>
+        </div>
+        <nav class="nav">
+            <a href="#dashboard" class="nav-link active">Dashboard</a>
+            <a href="#ai" class="nav-link">AI Analytics</a>
+        </nav>
+        <button id="connectWallet" class="btn btn-primary">
+            <span class="btn-icon">◈</span>
+            Connect Wallet
+        </button>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <!-- Agentic Strategy Orchestrator (Focused Narrative) -->
+        <section class="section">
+            <h2 class="section-title">Agentic Strategy Orchestrator <span class="badge secondary">Natural
+                    Language</span></h2>
+            <div class="intent-builder-container glass-card glow-border">
+                <div class="command-input-wrapper">
+                    <span class="command-prefix">></span>
+                    <input type="text" id="agent-command"
+                        placeholder="Optimize strategy (e.g., 'Set rebalance threshold to 2%' or 'Prioritize Pool B')"
+                        autocomplete="off">
+                    <button id="send-command" class="btn btn-primary">Update Policy</button>
+                </div>
+                <div id="parse-preview" class="parse-preview">
+                    Waiting for instructions...
+                </div>
+            </div>
+        </section>
+
+        <!-- Multi-Chain Dashboard -->
+        <section id="dashboard" class="section">
+            <h2 class="section-title">Multi-Chain Status</h2>
+            <div class="chain-grid">
+                <div class="chain-card" data-chain="sepolia">
+                    <div class="chain-header">
+                        <div class="chain-icon eth"></div>
+                        <div class="chain-info">
+                            <h3>Ethereum Sepolia</h3>
+                            <span class="chain-status online">● Online</span>
+                        </div>
+                    </div>
+                    <div class="chain-stats">
+                        <div class="stat">
+                            <span class="stat-label">RemoteHub</span>
+                            <span class="stat-value" id="sepolia-hub">Not Deployed</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Gas Price</span>
+                            <span class="stat-value" id="sepolia-gas">--</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Vault TVL</span>
+                            <span class="stat-value" id="sepolia-tvl">0.00</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">My Balance</span>
+                            <span class="stat-value" id="sepolia-balance">0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chain-card" data-chain="arbitrum">
+                    <div class="chain-header">
+                        <div class="chain-icon arb"></div>
+                        <div class="chain-info">
+                            <h3>Arbitrum Sepolia</h3>
+                            <span class="chain-status online">● Online</span>
+                        </div>
+                    </div>
+                    <div class="chain-stats">
+                        <div class="stat">
+                            <span class="stat-label">RemoteHub</span>
+                            <span class="stat-value" id="arb-hub">Not Deployed</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Gas Price</span>
+                            <span class="stat-value" id="arb-gas">--</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Vault TVL</span>
+                            <span class="stat-value" id="arb-tvl">0.00</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">My Balance</span>
+                            <span class="stat-value" id="arb-balance">0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chain-card" data-chain="lasna">
+                    <div class="chain-header">
+                        <div class="chain-icon react"></div>
+                        <div class="chain-info">
+                            <h3>Reactive Lasna</h3>
+                            <span class="chain-status online">● Online</span>
+                        </div>
+                    </div>
+                    <div class="chain-stats">
+                        <div class="stat">
+                            <span class="stat-label">Reactive Contract</span>
+                            <span class="stat-value" id="lasna-contract">Not Deployed</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Gas Price</span>
+                            <span class="stat-value" id="lasna-gas">--</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Vault TVL</span>
+                            <span class="stat-value" id="lasna-tvl">0.00</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">My Balance</span>
+                            <span class="stat-value" id="lasna-balance">0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Live Yields Section -->
+        <section class="section">
+            <h2 class="section-title">Live Yield Data <span class="badge">CoinGecko</span></h2>
+            <div class="yield-grid">
+                <div class="yield-card">
+                    <div class="yield-icon">Ξ</div>
+                    <div class="yield-info">
+                        <span class="yield-name">Ethereum</span>
+                        <span class="yield-symbol">ETH</span>
+                    </div>
+                    <div class="yield-data">
+                        <span class="yield-price" id="eth-price">$--</span>
+                        <span class="yield-change positive" id="eth-change">--%</span>
+                    </div>
+                </div>
+
+                <div class="yield-card">
+                    <div class="yield-icon aave">👻</div>
+                    <div class="yield-info">
+                        <span class="yield-name">Aave</span>
+                        <span class="yield-symbol">AAVE</span>
+                    </div>
+                    <div class="yield-data">
+                        <span class="yield-price" id="aave-price">$--</span>
+                        <span class="yield-change positive" id="aave-change">--%</span>
+                    </div>
+                </div>
+
+                <div class="yield-card">
+                    <div class="yield-icon comp">🏛️</div>
+                    <div class="yield-info">
+                        <span class="yield-name">Compound</span>
+                        <span class="yield-symbol">COMP</span>
+                    </div>
+                    <div class="yield-data">
+                        <span class="yield-price" id="comp-price">$--</span>
+                        <span class="yield-change positive" id="comp-change">--%</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Strategy Monitor (Reactive Logic) -->
+        <section class="section">
+            <h2 class="section-title">Vault Strategy Monitor <span class="badge reactive">Reactive Logic</span></h2>
+            <div class="strategy-monitor glass-card">
+                <div class="monitor-grid">
+                    <div class="monitor-card" id="pool-a-monitor">
+                        <span class="pool-name">Lending Pool A (Safe)</span>
+                        <div class="pool-yield">
+                            <span class="yield-value" id="pool-a-rate">--</span>
+                            <span class="yield-unit">% APY</span>
+                        </div>
+                        <div class="pool-balance">
+                            <div class="balance-row">
+                                <span>Allocation: </span>
+                                <span id="pool-a-alloc">0.00 tETH</span>
+                            </div>
+                            <div class="allocation-track">
+                                <div class="allocation-bar" id="pool-a-bar" style="width: 50%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="monitor-arrow">⇄</div>
+                    <div class="monitor-card" id="pool-b-monitor">
+                        <span class="pool-name">Lending Pool B (High Yield)</span>
+                        <div class="pool-yield">
+                            <span class="yield-value" id="pool-b-rate">--</span>
+                            <span class="yield-unit">% APY</span>
+                        </div>
+                        <div class="pool-balance">
+                            <div class="balance-row">
+                                <span>Allocation: </span>
+                                <span id="pool-b-alloc">0.00 tETH</span>
+                            </div>
+                            <div class="allocation-track">
+                                <div class="allocation-bar" id="pool-b-bar" style="width: 50%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="strategy-status">
+                    <div class="threshold-info">
+                        <span>Rebalance Threshold: </span>
+                        <span id="strategy-threshold">1.0%</span>
+                    </div>
+                    <div class="connection-status">
+                        <span class="status-indicator" id="contract-status">●</span>
+                        <span id="status-text">Detecting Node...</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        </section>
+
+        <!-- Live Reactive Node Feed (Extreme Visualization) -->
+        <section class="section">
+            <h2 class="section-title">Live Reactive Node Feed <span class="badge reactive">On-Chain Monitoring</span>
+            </h2>
+            <div class="terminal-container glass-card">
+                <div class="terminal-header">
+                    <div class="terminal-dots">
+                        <span></span><span></span><span></span>
+                    </div>
+                    <div class="terminal-title">nexus-node-01:~/reactive-logs</div>
+                </div>
+                <div id="reactive-terminal" class="terminal-body">
+                    <div class="terminal-line system">[SYSTEM] Reactive Node initialized...</div>
+                    <div class="terminal-line system">[SYSTEM] Synchronizing with Ethereum, Arbitrum, and Reactive
+                        Lasna...
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- AI Predictions Section -->
+        <section id="ai" class="section">
+            <h2 class="section-title">AI Yield Predictions <span class="badge zkml">ZKML Verified</span></h2>
+            <div class="ai-panel glass-card">
+                <div class="ai-header">
+                    <div class="ai-model">
+                        <span class="model-label">Model</span>
+                        <span class="model-id" id="model-id">yield-lstm-v1</span>
+                    </div>
+                    <div class="ai-status">
+                        <span class="status-dot"></span>
+                        <span id="ai-status-text">Ready</span>
+                    </div>
+                </div>
+
+                <div class="prediction-display">
+                    <div class="prediction-value">
+                        <span class="prediction-label">Predicted Optimal Yield</span>
+                        <span class="prediction-number" id="predicted-yield">--</span>
+                        <span class="prediction-unit">% APY</span>
+                    </div>
+                    <div class="prediction-confidence">
+                        <span class="confidence-label">Confidence</span>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" id="confidence-fill" style="width: 0%"></div>
+                        </div>
+                        <span class="confidence-value" id="confidence-value">--%</span>
+                    </div>
+                </div>
+
+                <div class="zkml-proof">
+                    <div class="proof-header">
+                        <span class="proof-label">ZK Proof Status</span>
+                        <span class="proof-status" id="proof-status">⏳ Pending</span>
+                    </div>
+                    <div class="proof-hash" id="proof-hash">--</div>
+                </div>
+
+                <button class="btn btn-secondary hidden" id="verify-proof">
+                    <span class="btn-icon">🛡️</span>
+                    Verify ZK Proof
+                </button>
+                <button class="btn btn-secondary" id="runPrediction">
+                    <span class="btn-icon">🧠</span>
+                    Run AI Prediction
+                </button>
+            </div>
+        </section>
+
+        <!-- Core Vault Management -->
+        <section id="intent" class="section">
+            <h2 class="section-title">Vault Deposit <span class="badge">Liquid Capital</span></h2>
+            <div class="intent-builder glass-card">
+                <div class="intent-form">
+                    <div class="form-group">
+                        <label class="form-label">Network</label>
+                        <select class="form-select" id="deposit-chain">
+                            <option value="sepolia">Ethereum Sepolia</option>
+                            <option value="arbitrum">Arbitrum Sepolia</option>
+                            <option value="lasna">Reactive Lasna</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Asset to Deposit</label>
+                        <select class="form-select" id="lend-asset">
+                            <option value="teth">testnet ETH</option>
+                            <option value="usdc">USDC</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Amount</label>
+                        <div class="input-with-max">
+                            <input type="number" class="form-input" id="amount" placeholder="0.0" step="0.01">
+                            <button class="max-btn">MAX</button>
+                        </div>
+                    </div>
+
+                    <div class="intent-summary">
+                        <div class="summary-row">
+                            <span>Initial Allocation</span>
+                            <span>90% Pool A / 10% Pool B</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Expected Gas</span>
+                            <span id="estimatedGas">~0.0005 ETH</span>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary btn-full" id="submitIntent" disabled>
+                        <span class="btn-icon">💰</span>
+                        Deposit into Vault
+                    </button>
+                    <div class="form-note">
+                        <span class="note-icon">ℹ️</span>
+                        New to the demo? The vault automatically mints 100 mUSDC for you if your balance is low!
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Maintenance & Automation Controls -->
+        <section id="maintenance" class="section">
+            <h2 class="section-title">Automation Lab <span class="badge maintenance">Judge Tools</span></h2>
+            <div class="maintenance-grid glass-card">
+                <div class="maintenance-box">
+                    <div class="box-header">
+                        <span class="box-icon">⚡</span>
+                        <h4>1-Click Demo Prep</h4>
+                    </div>
+                    <p class="box-desc">Mints 1M test tokens and grants max approval to the vault in one sequential
+                        flow.</p>
+                    <button class="btn btn-secondary btn-full" id="demoPrep">
+                        Authorize Account
+                    </button>
+                </div>
+
+                <div class="maintenance-box">
+                    <div class="box-header">
+                        <span class="box-icon">🎲</span>
+                        <h4>Yield Chaos Simulator</h4>
+                    </div>
+                    <p class="box-desc">Randomly shifts market rates across pools to create an optimization opportunity.
+                    </p>
+                    <button class="btn btn-secondary btn-full" id="simulateShift">
+                        Simulate Volatility
+                    </button>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Recent Activity Section -->
+        <section class="section">
+            <h2 class="section-title">Recent Activity</h2>
+            <div class="activity-list glass-card" id="activityList">
+                <div class="activity-empty">
+                    <span class="empty-icon">📋</span>
+                    <span>No recent activity. Connect wallet to see transactions.</span>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <span>Nexus Galaxy © 2024</span>
+            <div class="footer-links">
+                <a href="https://github.com" target="_blank">GitHub</a>
+                <a href="#" target="_blank">Docs</a>
+                <a href="https://sepolia.etherscan.io" target="_blank">Etherscan</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.9.0/dist/ethers.umd.min.js"></script>
+    <script src="contracts.js?v=999"></script>
+    <script src="index.js?v=999"></script>
+    <!-- ZKML Verification Modal -->
+    <div id="zk-modal" class="modal">
+        <div class="modal-content glass-card glow-border">
+            <div class="modal-header">
+                <h3>ZKML Proof Verification</h3>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="verification-steps">
+                    <div class="v-step" id="v-step-1">
+                        <span class="v-icon">🔄</span>
+                        <span class="v-text">Fetching Proof Data...</span>
+                    </div>
+                    <div class="v-step" id="v-step-2">
+                        <span class="v-icon">⏳</span>
+                        <span class="v-text">Validating ZK Constraints...</span>
+                    </div>
+                    <div class="v-step" id="v-step-3">
+                        <span class="v-icon">🔬</span>
+                        <span class="v-text">Comparing Hash (0x8A79...C318)</span>
+                    </div>
+                    <div class="v-step" id="v-step-4">
+                        <span class="v-icon">🛡️</span>
+                        <span class="v-text">Finalizing On-Chain Attestation...</span>
+                    </div>
+                </div>
+                <div class="verification-result" id="v-result">
+                    Verification in progress...
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="close-v-modal">Close</button>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

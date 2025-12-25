@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+
+# Build artifacts
+artifacts/
+cache/
+typechain-types/
+
+# Environment files (contains private keys)
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Coverage
+coverage/
+coverage.json
+
+# Temporary files
+*.tmp
+deployment-temp.json
+
+# Non-essential documentation (demo scripts, guides)
+demo_guide.md
+
+# Keep README.md - contains full technical documentation
+# Keep all contracts, scripts, frontend, and test files
