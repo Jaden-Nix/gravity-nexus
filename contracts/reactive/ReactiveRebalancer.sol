@@ -38,10 +38,37 @@ contract ReactiveRebalancer is IReactive {
     // keccak256("RateUpdated(uint256)")
     uint256 public constant RATE_UPDATED_SELECTOR = 0xe65c987b2e4668e09ba867026921588005b2b2063607a1e7e7d91683c8f91b7b; 
     
+    event CallbackConstructed(address destination, string action);
+    event SubscriptionRefreshed(address indexed service, address indexed logAddress);
+    
     constructor(address _sepVault, address _sepRemoteHub) {
         owner = msg.sender;
         sepVault = _sepVault;
         sepRemoteHub = _sepRemoteHub;
+    }
+
+    /**
+     * @notice Manually trigger/refresh the subscription
+     * @param service The Reactive System Contract address
+     * @param chainId The chain to monitor
+     * @param logAddress The contract to monitor
+     * @param selector The event selector
+     */
+    function rsync(address service, uint256 chainId, address logAddress, uint256 selector) external {
+        require(msg.sender == owner, "Only owner");
+        (bool success, ) = service.call(
+            abi.encodeWithSignature(
+                "subscribe(uint256,address,uint256,bytes32,bytes32,bytes32)",
+                chainId,
+                logAddress,
+                selector,
+                bytes32(0),
+                bytes32(0),
+                bytes32(0)
+            )
+        );
+        require(success, "Subscription failed");
+        emit SubscriptionRefreshed(service, logAddress);
     }
 
     /**
@@ -76,6 +103,8 @@ contract ReactiveRebalancer is IReactive {
             "OPTIMIZE",
             ""
         );
+
+        emit CallbackConstructed(sepRemoteHub, "OPTIMIZE");
 
         result[0] = abi.encode(SEPOLIA_CHAIN_ID, sepRemoteHub, 0, callbackData);
         

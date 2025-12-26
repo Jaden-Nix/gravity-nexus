@@ -369,11 +369,12 @@ For frictionless hackathon demos, Gravity Nexus includes an **Automation Lab** d
 
 | Network | Contract | Address |
 |---------|----------|---------|
-| **Sepolia** | NexusVault | `0xa86a6F197921DA06Cb2EEFc65370192B0405b40E` |
-| **Sepolia** | ReactiveNexus | `0x7ac42cD47A469AF1E3e38bFE3e93A57Edd0f7791` |
-| **Sepolia** | RemoteHub | `0x34bEAb876000C2FF44a22AF1E5346369cF696B9A` |
-| **Sepolia** | MockToken | `0xF31A2A4Fd1462A00E565868B4771D30104eE9647` |
-| **Lasna** | ReactiveRebalancer | `0x6cAf861524582c21967Ddbd66b2Fb32E1ef574aA` |
+| **Sepolia** | NexusVault | `0xaF4e198830f24B000D14A682f9c537D54fd76e49` |
+| **Sepolia** | ReactiveNexus | `0x11c2813851B649382cC72A64Ebcd0958467B705B` |
+| **Sepolia** | RemoteHub | `0x448688AD41C79D5E6c649B5BF3A12e68E4528707` |
+| **Sepolia** | MockToken | `0x828c06dE0F2D60E2ce726bb99a6572b88f4BdE53` |
+| **Lasna** | ReactiveRebalancer | `0x760FBf81b2FE506dEc35dA1385E65C79A8fD12FB` |
+| **Lasna** | **Team System Contract** | `0x0000000000000000000000000000000000000051` |
 
 ### Verification
 
@@ -440,20 +441,41 @@ gravity_nexus/
 - **Authorization Mapping**: Explicit allowlist for callback sources
 - **No External Calls in Loops**: Gas-efficient rebalancing logic
 
-### Audit Status
-> ⚠️ This project is for hackathon demonstration purposes. It has not undergone a formal security audit. Do not use with real funds.
-
 ---
 
-## 🤝 Contributing
+## 🏆 Judging Criteria Compliance
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+This project fulfills all requirements for the **Reactive Network Unicornization Bounty**.
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+### 1. Meaningful Utilization of Reactive Contracts
+Gravity Nexus does not just deploy Solidity; it uses **ReactiveRebalancer.sol** on the Lasna network to:
+- Monitor multiple `LendingAdapter` events on Sepolia
+- Execute complex yield comparison logic *off-settlement-chain*
+- Trigger trustless, cross-chain callbacks to `RemoteHub` on Sepolia
+
+### 2. Required Contract Addresses
+| Type | Contract | Address |
+|------|----------|---------|
+| **Origin** | MockAdapter A | `0x6022868B710EA865dd6B21c27888847aC1F31ffE` |
+| **Origin** | MockAdapter B | `0x75Faf823c7FC1c526F04B8B6DBda13200287bE85` |
+| **Reactive** | ReactiveRebalancer | `0x760FBf81b2FE506dEc35dA1385E65C79A8fD12FB` |
+| **Destination** | RemoteHub | `0x448688AD41C79D5E6c649B5BF3A12e68E4528707` |
+| **Team (Official)**| System Contract | `0x0000000000000000000000000000000000000051` |
+
+### 3. Workflow Execution Evidence (Transaction Hashes)
+
+| Step | Network | Transaction Hash |
+|-----------|-----------|------------------|
+| **Origin** | Sepolia | `0xf52287f9656b3168517a8247cf489dd9e8c58a7b8ceb6da8cd77d169fdabf867` |
+| **Reactive** | Lasna | `0x83fac4436763fdb7c3367f70b1192c0f49c6e7634feda495f5b58ffc807b0927` |
+| **Destination** | Sepolia | `0xd515ed3f5692efe01786c6af8585c58740344c704a75945523c0d0f2e8ea72fe` |
+
+### 4. Problem Solved
+**The Problem:** Cross-chain rebalancing usually requires centralized keepers (Gelato/Chainlink) or custom bots that are expensive and introduce a single point of failure.
+**The Solution:** Reactive Contracts invert control. The contract itself listens to market shifts and triggers its own optimization logic natively, reducing latency and eliminating centralized dependencies.
+
+### 5. Deployment Instructions
+Deployment scripts are located in `/scripts` and instructions are in the [README](#-quick-start-demo).
 
 ---
 
