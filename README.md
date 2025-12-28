@@ -458,9 +458,21 @@ Gravity Nexus does not just deploy Solidity; it uses **ReactiveRebalancer.sol** 
 |------|----------|---------|
 | **Origin** | MockAdapter A | `0x6022868B710EA865dd6B21c27888847aC1F31ffE` |
 | **Origin** | MockAdapter B | `0x75Faf823c7FC1c526F04B8B6DBda13200287bE85` |
+| **Origin** | MockAdapter C | `0x56168d09bac2A8e0235b097e50426EbAC88606D6` |
 | **Reactive** | ReactiveRebalancer | `0x760FBf81b2FE506dEc35dA1385E65C79A8fD12FB` |
-| **Destination** | RemoteHub | `0x448688AD41C79D5E6c649B5BF3A12e68E4528707` |
+| **Destination** | RemoteHub | `0xbB47EfeE770216222f1A97c0C2bb83B43F91F759` |
+| **Destination** | NexusVault | `0xa0389d5836d0B9CcBF9cAe89caA4cbe0ddE18342` |
 | **Team (Official)**| System Contract | `0x0000000000000000000000000000000000000051` |
+
+### 📊 Live Yield Pools (N-Pool Scalability Proof)
+| Pool | Protocol (Sim) | Current APY | Allocation |
+|------|----------------|-------------|------------|
+| Pool A | Aave | 2.0% | 0% |
+| Pool B | Compound | 5.0% | 0% |
+| Pool C | Morpho | 12.0% | 100% |
+
+> [!TIP]
+> Architecture is fully scalable. Adding Pool D, E... N requires zero changes to core logic.
 
 ### 3. Workflow Execution Evidence (Transaction Hashes)
 

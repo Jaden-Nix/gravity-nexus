@@ -509,83 +509,58 @@ class NexusGalaxy {
     }
 
     async updateStrategyMonitor() {
-        // Fallback progress if not connected or provider not ready
         if (!this.contracts.nexusVault || !this.provider) {
-            this.updateBars(50, 50); // Default middle
-            return;
-        }
-
-        // Ensure provider is actually callable
-        try {
-            await this.provider.getNetwork();
-        } catch (e) {
-            this.updateBars(50, 50);
+            this.updateBars(50, 50, 0);
             return;
         }
 
         try {
             const vault = this.contracts.nexusVault;
-            console.log("[DEBUG] Fetching adapter count...");
-            const count = await vault.getAdaptersCount();
-            if (Number(count) < 2) {
-                console.log("[DEBUG] Less than 2 adapters found.");
-                return;
+            const count = Number(await vault.getAdaptersCount());
+
+            const poolData = [];
+            let totalAssetsAll = 0n;
+
+            for (let i = 0; i < count; i++) {
+                const addr = await vault.adapters(i);
+                const pool = new ethers.Contract(addr, ABIS.LendingAdapter, this.provider);
+                const [rate, assets] = await Promise.all([
+                    pool.getSupplyRate(),
+                    pool.totalAssets()
+                ]);
+
+                const val = parseFloat(ethers.formatUnits(assets, 18));
+                poolData.push({ rate, assets, val, id: i });
+                totalAssetsAll += assets;
             }
 
-            console.log("[DEBUG] Fetching adapter addresses...");
-            const addrA = await vault.adapters(0);
-            const addrB = await vault.adapters(1);
+            const totalVal = parseFloat(ethers.formatUnits(totalAssetsAll, 18));
+            const percents = poolData.map(p => totalVal > 0 ? (p.val / totalVal) * 100 : (100 / count));
 
-            console.log(`[DEBUG] Adapters: A=${addrA}, B=${addrB}. Creating pool contracts...`);
-            const poolA = new ethers.Contract(addrA, ABIS.LendingAdapter, this.provider);
-            const poolB = new ethers.Contract(addrB, ABIS.LendingAdapter, this.provider);
+            // Update UI Labels
+            const letters = ['a', 'b', 'c', 'd', 'e'];
+            poolData.forEach((p, i) => {
+                const prefix = `pool-${letters[i]}`;
+                const rateEl = document.getElementById(`${prefix}-rate`);
+                const allocEl = document.getElementById(`${prefix}-alloc`);
+                if (rateEl) rateEl.textContent = (Number(p.rate) / 100).toFixed(2);
+                if (allocEl) allocEl.textContent = `${p.val.toFixed(2)} tETH`;
+            });
 
-            console.log("[DEBUG] Fetching yields and assets from pools in parallel...");
-            const [rateA, rateB, assetsA, assetsB] = await Promise.all([
-                poolA.getSupplyRate(),
-                poolB.getSupplyRate(),
-                poolA.totalAssets(),
-                poolB.totalAssets()
-            ]);
-            console.log("[DEBUG] Parallel fetch successful.");
-
-            const aVal = parseFloat(ethers.formatUnits(assetsA, 18));
-            const bVal = parseFloat(ethers.formatUnits(assetsB, 18));
-
-            // Use animation for updates if possible
-            if (document.getElementById('pool-a-rate')) {
-                document.getElementById('pool-a-rate').textContent = (Number(rateA) / 100).toFixed(2);
-                document.getElementById('pool-b-rate').textContent = (Number(rateB) / 100).toFixed(2);
-                document.getElementById('pool-a-alloc').textContent = `${aVal.toFixed(2)} tETH`;
-                document.getElementById('pool-b-alloc').textContent = `${bVal.toFixed(2)} tETH`;
-            }
-
-            // Update Progress Bars
-            const total = aVal + bVal;
-            if (total > 0) {
-                const aPercent = (aVal / total) * 100;
-                const bPercent = (bVal / total) * 100;
-                this.updateBars(aPercent, bPercent);
-            } else {
-                // If TVL is 0, show 50/50 visual default
-                this.updateBars(50, 50);
-            }
+            this.updateBars(...percents);
 
         } catch (error) {
-            console.error('Failed to update strategy monitor detailed error:', error);
-            // Don't spam terminal with monitor errors unless it's a new type of error
-            if (!this.lastMonitorError || this.lastMonitorError !== error.message) {
-                this.injectTerminalLog('warn', `[MONITOR] Update failed: ${error.message.slice(0, 40)}...`);
-                this.lastMonitorError = error.message;
-            }
+            console.error('Failed to update strategy monitor:', error);
         }
     }
 
-    updateBars(aPercent, bPercent) {
+    updateBars(a = 0, b = 0, c = 0) {
         const barA = document.getElementById('pool-a-bar');
         const barB = document.getElementById('pool-b-bar');
-        if (barA) barA.style.width = `${aPercent}%`;
-        if (barB) barB.style.width = `${bPercent}%`;
+        const barC = document.getElementById('pool-c-bar');
+        if (barA) barA.style.width = `${a}%`;
+        if (barB) barB.style.width = `${b}%`;
+        if (barC) barC.style.width = `${c}%`;
     }
 
     async updateChainStatuses() {
@@ -1099,31 +1074,38 @@ class NexusGalaxy {
                 btn.disabled = false;
                 return;
             }
+            const count = Number(await vault.getAdaptersCount());
             const adapterAAddr = await vault.adapters(0);
             const adapterBAddr = await vault.adapters(1);
+            const adapterCAddr = count > 2 ? await vault.adapters(2) : null;
 
             // We use the custom function setSupplyRate (which MockAdapter has)
             const mockABI = ["function setSupplyRate(uint256)"];
             const mockA = new ethers.Contract(adapterAAddr, mockABI, this.signer);
             const mockB = new ethers.Contract(adapterBAddr, mockABI, this.signer);
+            const mockC = adapterCAddr ? new ethers.Contract(adapterCAddr, mockABI, this.signer) : null;
 
-            // Parallelize rate shifts: A=2%, B=15%
-            this.injectTerminalLog('system', '[DEMO] Sending parallel rate updates to Sepolia...');
-            const [txA, txB] = await Promise.all([
-                mockA.setSupplyRate(200, {
-                    gasLimit: chainKey === 'lasna' ? 100000n : undefined,
-                    gasPrice: chainKey === 'lasna' ? ethers.parseUnits("10", "gwei") : undefined
-                }),
-                mockB.setSupplyRate(1500, {
-                    gasLimit: chainKey === 'lasna' ? 100000n : undefined,
-                    gasPrice: chainKey === 'lasna' ? ethers.parseUnits("10", "gwei") : undefined
-                })
-            ]);
+            // Sequential rate shifts to avoid nonce conflicts
+            this.injectTerminalLog('system', '[DEMO] Sending sequential rate updates to Sepolia...');
 
-            this.injectTerminalLog('log', '[DEMO] Transactions broadcasted. Waiting for confirmations...');
-            await Promise.all([txA.wait(), txB.wait()]);
+            this.injectTerminalLog('action', '[DEMO] Updating Pool A (2% APY)...');
+            const txA = await mockA.setSupplyRate(200);
+            await txA.wait();
+            this.injectTerminalLog('log', '[DEMO] Pool A Updated.');
 
-            this.injectTerminalLog('log', '[DEMO] Yield Shift Confirmed: Pool B is now significantly higher!');
+            this.injectTerminalLog('action', '[DEMO] Updating Pool B (5% APY)...');
+            const txB = await mockB.setSupplyRate(500);
+            await txB.wait();
+            this.injectTerminalLog('log', '[DEMO] Pool B Updated.');
+
+            if (mockC) {
+                this.injectTerminalLog('action', '[DEMO] Updating Pool C (12% APY)...');
+                const txC = await mockC.setSupplyRate(1200);
+                await txC.wait();
+                this.injectTerminalLog('log', '[DEMO] Pool C Updated.');
+            }
+
+            this.injectTerminalLog('log', '[DEMO] Yield Shift Confirmed: Pool C is now the clear winner!');
 
             // For Demo: Trigger rebalance directly to show immediate fund movement.
             // In production, the Reactive Network would handle this automatically,

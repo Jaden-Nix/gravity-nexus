@@ -15,7 +15,11 @@ async function main() {
     const SEPOLIA_CHAIN_ID = 11155111;
 
     // Core Addresses
-    const ADAPTER_A = "0x6022868B710EA865dd6B21c27888847aC1F31ffE";
+    const ADAPTERS = [
+        "0x6022868B710EA865dd6B21c27888847aC1F31ffE", // Pool A
+        "0x75Faf823c7FC1c526F04B8B6DBda13200287bE85", // Pool B
+        "0x56168d09bac2A8e0235b097e50426EbAC88606D6"  // Pool C (Morpho)
+    ];
     const REBALANCER = "0x760FBf81b2FE506dEc35dA1385E65C79A8fD12FB";
 
     // Selector for RateUpdated(uint256)
@@ -27,29 +31,28 @@ async function main() {
         "function subscribe(uint256 chainId, address logAddress, uint256 selector, bytes32 topic1, bytes32 topic2, bytes32 topic3) external"
     ], SYSTEM_CONTRACT);
 
-    console.log(`Subscribing Rebalancer (${REBALANCER}) to:`);
-    console.log(`  Source Chain: Sepolia (${SEPOLIA_CHAIN_ID})`);
-    console.log(`  Contract: ${ADAPTER_A}`);
-    console.log(`  Event: RateUpdated (selector: ${RATE_UPDATED_SELECTOR})`);
+    console.log(`Subscribing Rebalancer (${REBALANCER}) to all yield pools...`);
 
-    try {
-        const tx = await system.subscribe(
-            SEPOLIA_CHAIN_ID,
-            ADAPTER_A,
-            RATE_UPDATED_SELECTOR,
-            ethers.ZeroHash, // topic1 (not indexed)
-            ethers.ZeroHash, // topic2
-            ethers.ZeroHash  // topic3
-        );
+    for (const adapter of ADAPTERS) {
+        console.log(`\nSubscribing to: ${adapter}`);
+        try {
+            const tx = await system.subscribe(
+                SEPOLIA_CHAIN_ID,
+                adapter,
+                RATE_UPDATED_SELECTOR,
+                ethers.ZeroHash,
+                ethers.ZeroHash,
+                ethers.ZeroHash
+            );
 
-        console.log("Subscription TX sent:", tx.hash);
-        const receipt = await tx.wait();
-        console.log("Subscription confirmed in block:", receipt?.blockNumber);
-        console.log("✅ Reactive Network is now listening for yield shifts!");
-    } catch (e: any) {
-        console.error("❌ Subscription Failed!");
-        console.error(e.message);
+            console.log("   TX sent:", tx.hash);
+            await tx.wait();
+            console.log("   ✅ Subscribed.");
+        } catch (e: any) {
+            console.error(`   ❌ Failed: ${e.message}`);
+        }
     }
+    console.log("\n=== ALL SUBSCRIPTIONS COMPLETED ===");
 }
 
 main().catch(console.error);
