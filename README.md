@@ -497,6 +497,5 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 
 **Gravity Nexus: Moving liquidity at the speed of thought, secured by the power of math.**
 
-🌐 [Website](#) • 📖 [Docs](#) • 🐦 [Twitter](#) • 💬 [Discord](#)
 
 </div>

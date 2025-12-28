@@ -47,9 +47,9 @@ async function main() {
     console.log(`Pool B: ${adapterBAddress}`);
 
     // Simulation loop - Long enough for interactive demo (60 iterations × ~1.5s = ~90 seconds)
-    console.log("Entering simulation loop (60 iterations, ~90 seconds). Try changing threshold mid-run!");
+    console.log("Entering simulation loop (2 iterations).");
     let iteration = 0;
-    while (iteration < 60) {
+    while (iteration < 2) {
         iteration++;
         console.log(`\n--- Iteration ${iteration} ---`);
 
