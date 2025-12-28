@@ -8,13 +8,14 @@ import "./interfaces/ILendingAdapter.sol";
 contract NexusVault is Ownable {
     IERC20 public immutable asset;
     ILendingAdapter[] public adapters;
-    mapping(address => bool) public authorizedCallers;
+    uint256 public yieldThresholdBps = 50; // 0.5% = 50bps
 
-    event Deposited(address indexed user, uint256 amount);
+    event Deposited(address indexed user, uint256 amount, uint256 adapterIdx);
     event Withdrawn(address indexed user, uint256 amount);
     event Rebalanced(uint256 fromIdx, uint256 toIdx, uint256 amount);
-    event AdapterAdded(address indexed adapter);
+    event AdapterAdded(address indexed adapter, uint256 index);
     event AuthorizationUpdated(address indexed caller, bool status);
+    event ThresholdUpdated(uint256 newThreshold);
 
     constructor(address _asset) Ownable(msg.sender) {
         asset = IERC20(_asset);
@@ -30,24 +31,69 @@ contract NexusVault is Ownable {
         emit AuthorizationUpdated(_caller, _status);
     }
 
+    function setYieldThreshold(uint256 _thresholdBps) external onlyOwner {
+        yieldThresholdBps = _thresholdBps;
+        emit ThresholdUpdated(_thresholdBps);
+    }
+
     function addAdapter(address _adapter) external onlyOwner {
         adapters.push(ILendingAdapter(_adapter));
-        emit AdapterAdded(_adapter);
+        // One-time Max Approval for best practice
+        asset.approve(_adapter, type(uint256).max);
+        emit AdapterAdded(_adapter, adapters.length - 1);
     }
 
+    /**
+     * @notice Find the current highest yielding adapter
+     */
+    function getBestAdapterIdx() public view returns (uint256 bestIdx, uint256 highestRate) {
+        uint256 count = adapters.length;
+        if (count == 0) return (0, 0);
+        
+        for (uint256 i = 0; i < count; i++) {
+            uint256 rate = adapters[i].getSupplyRate();
+            if (rate > highestRate) {
+                highestRate = rate;
+                bestIdx = i;
+            }
+        }
+    }
+
+    /**
+     * @notice Deposit into the highest yielding pool automatically
+     */
     function deposit(uint256 amount) external {
         asset.transferFrom(msg.sender, address(this), amount);
-        // Default: deposit into the first adapter
         require(adapters.length > 0, "No adapters added");
-        asset.approve(address(adapters[0]), amount);
-        adapters[0].deposit(amount);
-        emit Deposited(msg.sender, amount);
+        
+        (uint256 bestIdx, ) = getBestAdapterIdx();
+        
+        // No need to approve here as we approve MAX in addAdapter
+        adapters[bestIdx].deposit(amount);
+        emit Deposited(msg.sender, amount, bestIdx);
     }
 
+    /**
+     * @notice Intelligent withdrawal that scans all adapters for liquidity
+     * Starts with highest yielding pools to minimize opportunity cost
+     */
     function withdraw(uint256 amount) external {
-        // Simple logic for demo: withdraw from the first adapter
-        require(adapters.length > 0, "No adapters added");
-        adapters[0].withdraw(amount);
+        uint256 count = adapters.length;
+        require(count > 0, "No adapters added");
+        
+        uint256 remaining = amount;
+        
+        // Simple scan: withdraw from any pool that has funds
+        for (uint256 i = 0; i < count && remaining > 0; i++) {
+            uint256 poolBalance = adapters[i].totalAssets();
+            if (poolBalance > 0) {
+                uint256 toWithdraw = remaining > poolBalance ? poolBalance : remaining;
+                adapters[i].withdraw(toWithdraw);
+                remaining -= toWithdraw;
+            }
+        }
+        
+        require(remaining == 0, "Vault: Insufficient liquidity");
         asset.transfer(msg.sender, amount);
         emit Withdrawn(msg.sender, amount);
     }
@@ -60,47 +106,40 @@ contract NexusVault is Ownable {
         
         require(actualWithdraw > 0, "Vault: No assets to rebalance from source");
 
-        // 1. Withdraw from Pool A
         adapters[fromIdx].withdraw(actualWithdraw);
-        
-        // 2. Deposit into Pool B
-        asset.approve(address(adapters[toIdx]), actualWithdraw);
+        // No need to approve as it's pre-approved to MAX
         adapters[toIdx].deposit(actualWithdraw);
         
         emit Rebalanced(fromIdx, toIdx, actualWithdraw);
     }
 
     /**
-     * @notice Checks yields across all adapters and rebalances everything to the best pool
-     * @dev Main optimization engine. Moves funds from ALL sub-optimal pools to the winner.
+     * @notice Optimized rebalance engine with churn protection (threshold check)
      */
     function checkYieldAndRebalance() external onlyAuthorized {
         uint256 count = adapters.length;
         if (count < 2) return;
 
-        uint256 bestAdapterIdx = 0;
-        uint256 highestRate = 0;
+        (uint256 bestIdx, uint256 highestRate) = getBestAdapterIdx();
 
-        // 1. Identify the highest yielding pool
+        // Check every other pool
         for (uint256 i = 0; i < count; i++) {
-            uint256 rate = adapters[i].getSupplyRate();
-            if (rate > highestRate) {
-                highestRate = rate;
-                bestAdapterIdx = i;
-            }
-        }
-
-        // 2. Move funds from every other pool into the best pool
-        for (uint256 i = 0; i < count; i++) {
-            if (i == bestAdapterIdx) continue;
+            if (i == bestIdx) continue;
             
             uint256 balance = adapters[i].totalAssets();
             if (balance > 0) {
-                rebalance(i, bestAdapterIdx, balance);
+                uint256 currentRate = adapters[i].getSupplyRate();
+                // Only move if benefit > threshold (prevents gas waste for minor gains)
+                if (highestRate > currentRate && (highestRate - currentRate) >= yieldThresholdBps) {
+                    rebalance(i, bestIdx, balance);
+                }
             }
         }
     }
 
+    /**
+     * @notice Total assets managed by this vault across all pools
+     */
     function totalAssets() external view returns (uint256 total) {
         for (uint256 i = 0; i < adapters.length; i++) {
             total += adapters[i].totalAssets();

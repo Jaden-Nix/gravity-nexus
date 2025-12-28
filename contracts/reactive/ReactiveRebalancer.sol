@@ -73,6 +73,14 @@ contract ReactiveRebalancer is IReactive {
 
     /**
      * @notice Reactive function called on every matching event log
+     * @dev Trigger-and-Pull Architecture:
+     * This contract acts as an "Event Watcher". Instead of calculating the 
+     * best pool here (which would require state tracking of N adapters), 
+     * we simply notify the RemoteHub that a yield shift has occurred. 
+     * The NexusVault then performs the on-chain optimization check.
+     * 
+     * This keeps the Reactive Contract stateless, gas-efficient, and 
+     * compatible with new pools added to the Vault at runtime.
      */
     function react(EventLog calldata log) external override returns (bytes[] memory callbacks) {
         // 1. Verify source chain (Sepolia)
@@ -80,17 +88,8 @@ contract ReactiveRebalancer is IReactive {
             return new bytes[](0);
         }
 
-        // 2. We are looking for triggers:
-        // Case A: ActionTriggered from ReactiveNexus (Manual Audit Trigger)
-        // Case B: RateUpdated from MockAdapter (Automatic Chaos Trigger)
-        
-        bool shouldTrigger = false;
-        
-        if (log.selector == RATE_UPDATED_SELECTOR) {
-             shouldTrigger = true;
-        }
-
-        if (!shouldTrigger) {
+        // 2. Filter for RateUpdated events
+        if (log.selector != RATE_UPDATED_SELECTOR) {
             return new bytes[](0);
         }
 
