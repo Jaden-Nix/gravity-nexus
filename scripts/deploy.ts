@@ -138,8 +138,8 @@ async function main() {
     simScript = simScript.replace(/const vaultAddress = "0x.*?";/, `const vaultAddress = "${vaultAddress}";`);
     simScript = simScript.replace(/const reactiveAddress = "0x.*?";/, `const reactiveAddress = "${reactiveNexusAddress}";`);
 
-    // Fix the function name bug (setRate -> setSupplyRate)
-    simScript = simScript.replace(/\.setRate\(/g, ".setSupplyRate(");
+    // Fix the function name bug (setRate -> simulateRateChange)
+    simScript = simScript.replace(/\.setRate\(/g, ".simulateRateChange(");
 
     fs.writeFileSync(simScriptPath, simScript);
     console.log("✓ scripts/simulate-automation.ts updated.");

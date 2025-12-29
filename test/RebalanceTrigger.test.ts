@@ -60,7 +60,7 @@ describe("Gravity Nexus: Reactive Rebalance Detailed Test", function () {
 
     it("should NOT rebalance if yield difference is below threshold (1%)", async function () {
         // Set Pool B to 5.5% (gap is 0.5% < 1%)
-        await adapterB.setSupplyRate(550);
+        await adapterB.simulateRateChange(550);
 
         await reactiveNexus.checkYieldAndRebalance(ethers.parseUnits("10", 18));
 
@@ -71,7 +71,7 @@ describe("Gravity Nexus: Reactive Rebalance Detailed Test", function () {
 
     it("should trigger rebalance A -> B when B yield spikes (e.g. 10%)", async function () {
         // Gap is 5% (> 1% threshold)
-        await adapterB.setSupplyRate(1000);
+        await adapterB.simulateRateChange(1000);
 
         const moveAmount = ethers.parseUnits("10", 18);
 
@@ -87,11 +87,11 @@ describe("Gravity Nexus: Reactive Rebalance Detailed Test", function () {
 
     it("should rebalance BACK (B -> A) if A yield becomes superior", async function () {
         // First move A -> B
-        await adapterB.setSupplyRate(1000);
+        await adapterB.simulateRateChange(1000);
         await reactiveNexus.checkYieldAndRebalance(ethers.parseUnits("10", 18));
 
         // Now A spikes to 15%, B stays at 10%
-        await adapterA.setSupplyRate(1500);
+        await adapterA.simulateRateChange(1500);
 
         const moveAmount = ethers.parseUnits("10", 18);
 

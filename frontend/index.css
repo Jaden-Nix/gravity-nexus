@@ -1411,6 +1411,16 @@ body::after {
         opacity: 0.8;
         color: var(--accent-primary);
     }
+
+    .intent-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .intent-buttons .btn {
+        flex: 1;
+    }
 }
 
 .strategy-status {

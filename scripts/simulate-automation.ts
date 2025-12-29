@@ -60,8 +60,8 @@ async function main() {
 
         console.log(`Setting rates in parallel: Pool A=${(rateA / 100).toFixed(2)}%, Pool B=${(rateB / 100).toFixed(2)}%`);
         const [txA, txB] = await Promise.all([
-            AdapterA.setSupplyRate(rateA),
-            AdapterB.setSupplyRate(rateB)
+            AdapterA.simulateRateChange(rateA),
+            AdapterB.simulateRateChange(rateB)
         ]);
         await Promise.all([txA.wait(), txB.wait()]);
 

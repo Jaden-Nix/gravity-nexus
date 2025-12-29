@@ -19,7 +19,7 @@ async function main() {
     console.log("Setting Adapter C (Morpho) Yield to 1800 bps...");
 
     // This emits RateUpdated(1800)
-    const tx = await adapterC.setSupplyRate(1800);
+    const tx = await adapterC.simulateRateChange(1800);
     console.log("Origin TX Hash:", tx.hash);
 
     const receipt = await tx.wait();

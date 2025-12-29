@@ -10,11 +10,11 @@ async function main() {
 
     const sepProvider = new ethers.JsonRpcProvider("https://ethereum-sepolia-rpc.publicnode.com");
     const sepWallet = new ethers.Wallet(process.env.PRIVATE_KEY!, sepProvider);
-    const adapterA = new ethers.Contract(ADAPTER_A, ["function setSupplyRate(uint256)"], sepWallet);
+    const adapterA = new ethers.Contract(ADAPTER_A, ["function simulateRateChange(uint256)"], sepWallet);
     const hub = new ethers.Contract(NEW_HUB, ["event ActionExecuted(string actionType, bool success, bytes data)"], sepProvider);
 
     console.log("1. Triggering Origin Event (Rate -> 7000)...");
-    const tx = await adapterA.setSupplyRate(7000);
+    const tx = await adapterA.simulateRateChange(7000);
     console.log("   🚀 ORIGIN TX HASH:", tx.hash);
     const receipt = await tx.wait();
     console.log("   Confirmed in block:", receipt?.blockNumber);

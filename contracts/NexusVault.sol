@@ -120,8 +120,10 @@ contract NexusVault is Ownable {
 
     /**
      * @notice Optimized rebalance engine with churn protection (threshold check)
+     * @dev AUTHORIZED ONLY - Called by RemoteHub via Reactive Network automation
+     *      This keeps rebalancing trustless (automated) but not public (MEV-protected)
      */
-    function checkYieldAndRebalance() external {
+    function checkYieldAndRebalance() external onlyAuthorized {
         uint256 count = adapters.length;
         if (count < 2) return;
 

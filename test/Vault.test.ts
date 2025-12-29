@@ -82,7 +82,7 @@ describe("Nexus Galaxy Vault Automation", function () {
 
         // Update adapterB yield to be higher than adapterA + threshold
         // adapterA is 500 (5%), threshold is 100 (1%)
-        await adapterB.setSupplyRate(1000); // 10%
+        await adapterB.simulateRateChange(1000); // 10%
 
         // Trigger ReactiveNexus rebalance
         await expect(reactiveNexus.checkYieldAndRebalance(amount))

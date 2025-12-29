@@ -2,22 +2,27 @@ import { ethers } from "hardhat";
 
 async function main() {
     const [deployer] = await ethers.getSigners();
-    console.log("Clearing nonce for:", deployer.address);
+    console.log("Clearing nonces for:", deployer.address);
 
     const nonce = await ethers.provider.getTransactionCount(deployer.address);
-    console.log("Current Nonce to clear:", nonce);
+    const pendingNonce = await ethers.provider.getTransactionCount(deployer.address, "pending");
 
-    const tx = await deployer.sendTransaction({
-        to: deployer.address,
-        value: 0,
-        nonce: nonce,
-        gasPrice: ethers.parseUnits("150", "gwei"), // Very high gas price to force clear
-        gasLimit: 21000
-    });
+    console.log("Confirmed Nonce:", nonce);
+    console.log("Pending Nonce:", pendingNonce);
 
-    console.log("Cleanup TX Sent:", tx.hash);
-    await tx.wait();
-    console.log("✅ Nonce cleared!");
+    for (let i = nonce; i < pendingNonce; i++) {
+        console.log(`Clearing nonce ${i}...`);
+        const tx = await deployer.sendTransaction({
+            to: deployer.address,
+            value: 0,
+            nonce: i,
+            gasPrice: ethers.parseUnits("150", "gwei"),
+            gasLimit: 21000
+        });
+        console.log(`   TX Sent: ${tx.hash}`);
+        await tx.wait();
+        console.log(`   ✅ Nonce ${i} cleared!`);
+    }
 }
 
 main().catch(console.error);

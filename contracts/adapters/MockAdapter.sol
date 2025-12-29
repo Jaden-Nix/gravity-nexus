@@ -52,8 +52,14 @@ contract MockAdapter is ILendingAdapter, Ownable {
         return supplyRate;
     }
     
-    function setSupplyRate(uint256 _newRate) external {
-        supplyRate = _newRate;
-        emit RateUpdated(_newRate);
+    /**
+     * @notice PUBLIC demo trigger for Reactive Network automation
+     * @dev Anyone can call this to simulate market rate changes.
+     *      The emitted RateUpdated event triggers Reactive Network → RemoteHub → Vault rebalance
+     *      Usage: mockAdapterB.simulateRateChange(8e16) // 8% APY
+     */
+    function simulateRateChange(uint256 newRate) external {
+        supplyRate = newRate;
+        emit RateUpdated(newRate);
     }
 }

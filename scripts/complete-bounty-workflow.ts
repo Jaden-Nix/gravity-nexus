@@ -30,10 +30,10 @@ async function main() {
     console.log("3. Triggering Origin Event on Sepolia (Yield Shift)...");
     const sepProvider = new ethers.JsonRpcProvider("https://ethereum-sepolia-rpc.publicnode.com");
     const sepWallet = new ethers.Wallet(process.env.PRIVATE_KEY!, sepProvider);
-    const adapterA = new ethers.Contract(ADAPTER_A, ["function setSupplyRate(uint256)"], sepWallet);
+    const adapterA = new ethers.Contract(ADAPTER_A, ["function simulateRateChange(uint256)"], sepWallet);
 
     // Set to a new rate to trigger event (6000)
-    const txOrigin = await adapterA.setSupplyRate(6000);
+    const txOrigin = await adapterA.simulateRateChange(6000);
     console.log("   🚀 ORIGIN TX HASH:", txOrigin.hash);
     const receiptOrigin = await txOrigin.wait();
     console.log("   Confirmed in block:", receiptOrigin?.blockNumber);

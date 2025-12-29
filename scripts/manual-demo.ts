@@ -124,9 +124,9 @@ async function main() {
     console.log("└────────────────────────────────────────────────────────────────┘");
 
     console.log("  📉 Setting Pool A to 2% APY (low)...");
-    await (await adapterA.setSupplyRate(200)).wait();
+    await (await adapterA.simulateRateChange(200)).wait();
     console.log("  📈 Setting Pool B to 15% APY (HIGH)...");
-    await (await adapterB.setSupplyRate(1500)).wait();
+    await (await adapterB.simulateRateChange(1500)).wait();
 
     const newRateA = await adapterA.getSupplyRate();
     const newRateB = await adapterB.getSupplyRate();
@@ -204,9 +204,9 @@ async function main() {
     console.log("└────────────────────────────────────────────────────────────────┘");
 
     console.log("  📈 Now Pool A surges to 20% APY...");
-    await (await adapterA.setSupplyRate(2000)).wait();
+    await (await adapterA.simulateRateChange(2000)).wait();
     console.log("  📉 Pool B drops to 3% APY...");
-    await (await adapterB.setSupplyRate(300)).wait();
+    await (await adapterB.simulateRateChange(300)).wait();
 
     console.log(`  🔄 Triggering rebalance check...`);
     const tx2 = await reactive.checkYieldAndRebalance(await vault.totalAssets());

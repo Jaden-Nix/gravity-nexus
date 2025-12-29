@@ -1,7 +1,7 @@
 import { ethers } from "hardhat";
 
 async function main() {
-    const VAULT = "0xaF4e198830f24B000D14A682f9c537D54fd76e49";
+    const VAULT = "0xa0389d5836d0B9CcBF9cAe89caA4cbe0ddE18342";
     const vault = await ethers.getContractAt("NexusVault", VAULT);
 
     const owner = await vault.owner();

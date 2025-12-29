@@ -7,8 +7,8 @@ const CHAIN_CONFIG = {
         chainName: 'Ethereum Sepolia',
         rpcUrls: ['https://rpc.ankr.com/eth_sepolia'],
         nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
-        remoteHub: "0xbB47EfeE770216222f1A97c0C2bb83B43F91F759",
-        nexusVault: "0xa0389d5836d0B9CcBF9cAe89caA4cbe0ddE18342",
+        remoteHub: "0x5E1B04116a8F3cBf57b35CCdc42F96115Ca3Ee69",
+        nexusVault: "0xB7cd5b44Fcd3646ec08954Ecc6FDe43f334dF18f",
         reactiveNexus: "0x11c2813851B649382cC72A64Ebcd0958467B705B",
         mlModel: "0x8429D458ccECA475AC28Aa29846344603e231E43",
         zkmlVerifier: "0xD29Da591e7447B7321695488EfE983486FFb82c0",
@@ -52,8 +52,8 @@ const CONTRACT_ADDRESSES = {
     },
     // Ethereum Sepolia - Deployed
     sepolia: {
-        remoteHub: "0xbB47EfeE770216222f1A97c0C2bb83B43F91F759",
-        nexusVault: "0xa0389d5836d0B9CcBF9cAe89caA4cbe0ddE18342",
+        remoteHub: "0x5E1B04116a8F3cBf57b35CCdc42F96115Ca3Ee69",
+        nexusVault: "0xB7cd5b44Fcd3646ec08954Ecc6FDe43f334dF18f",
         reactiveNexus: "0x11c2813851B649382cC72A64Ebcd0958467B705B",
         mlModel: "0x8429D458ccECA475AC28Aa29846344603e231E43",
         zkmlVerifier: "0xD29Da591e7447B7321695488EfE983486FFb82c0",

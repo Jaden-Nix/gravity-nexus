@@ -174,6 +174,7 @@ class NexusGalaxy {
 
         // Submit intent
         document.getElementById('submitIntent').addEventListener('click', () => this.submitIntent());
+        document.getElementById('withdrawVault').addEventListener('click', () => this.withdrawVault());
 
         // Deposit chain selector - update asset labels
         document.getElementById('deposit-chain').addEventListener('change', (e) => {
@@ -908,6 +909,46 @@ class NexusGalaxy {
         }
     }
 
+    async withdrawVault() {
+        if (!this.account) return alert("Connect wallet first!");
+        const btn = document.getElementById('withdrawVault');
+        const originalText = btn.innerHTML;
+        const chainKey = this.getChainKey();
+
+        try {
+            btn.innerHTML = '<span class="btn-icon">⏳</span> Processing Withdrawal...';
+            btn.disabled = true;
+
+            const vault = this.contracts.nexusVault;
+            if (!vault) throw new Error("Vault contract not loaded");
+
+            const balance = await vault.totalAssets();
+            if (balance === 0n) {
+                this.injectTerminalLog('warn', '[VAULT] No funds found to withdraw.');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                return;
+            }
+
+            this.injectTerminalLog('action', `[VAULT] Withdrawing ${ethers.formatUnits(balance, 18)} tETH from all pools...`);
+
+            const tx = await vault.connect(this.signer).withdraw(balance);
+            await tx.wait();
+
+            this.injectTerminalLog('system', '[VAULT] ✅ Withdrawal successful! Funds returned to wallet.');
+            this.addActivity('📦', 'Withdrawal', `Recovered ${ethers.formatUnits(balance, 18)} tETH`);
+
+            btn.innerHTML = '✅ Withdrawn';
+            setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 3000);
+            this.updateVaultInfo();
+        } catch (e) {
+            console.error(e);
+            this.injectTerminalLog('error', `[VAULT] Withdrawal failed: ${e.message.slice(0, 50)}`);
+            btn.innerHTML = '❌ Failed';
+            setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 2000);
+        }
+    }
+
     addActivity(icon, action, details, link = null) {
         const activityList = document.getElementById('activityList');
 
@@ -1079,8 +1120,8 @@ class NexusGalaxy {
             const adapterBAddr = await vault.adapters(1);
             const adapterCAddr = count > 2 ? await vault.adapters(2) : null;
 
-            // We use the custom function setSupplyRate (which MockAdapter has)
-            const mockABI = ["function setSupplyRate(uint256)"];
+            // We use the custom function simulateRateChange (which MockAdapter has)
+            const mockABI = ["function simulateRateChange(uint256)"];
             const mockA = new ethers.Contract(adapterAAddr, mockABI, this.signer);
             const mockB = new ethers.Contract(adapterBAddr, mockABI, this.signer);
             const mockC = adapterCAddr ? new ethers.Contract(adapterCAddr, mockABI, this.signer) : null;
@@ -1089,18 +1130,18 @@ class NexusGalaxy {
             this.injectTerminalLog('system', '[DEMO] Sending sequential rate updates to Sepolia...');
 
             this.injectTerminalLog('action', '[DEMO] Updating Pool A (2% APY)...');
-            const txA = await mockA.setSupplyRate(200);
+            const txA = await mockA.simulateRateChange(200);
             await txA.wait();
             this.injectTerminalLog('log', '[DEMO] Pool A Updated.');
 
             this.injectTerminalLog('action', '[DEMO] Updating Pool B (5% APY)...');
-            const txB = await mockB.setSupplyRate(500);
+            const txB = await mockB.simulateRateChange(500);
             await txB.wait();
             this.injectTerminalLog('log', '[DEMO] Pool B Updated.');
 
             if (mockC) {
                 this.injectTerminalLog('action', '[DEMO] Updating Pool C (12% APY)...');
-                const txC = await mockC.setSupplyRate(1200);
+                const txC = await mockC.simulateRateChange(1200);
                 await txC.wait();
                 this.injectTerminalLog('log', '[DEMO] Pool C Updated.');
             }
