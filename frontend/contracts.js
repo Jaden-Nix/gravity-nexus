@@ -89,6 +89,7 @@ const ABIS = {
         "function asset() view returns (address)",
         "function totalAssets() view returns (uint256)",
         "function deposit(uint256 amount)",
+        "function withdraw(uint256 amount)",
         "function rebalance(uint256 fromIdx, uint256 toIdx, uint256 amount)",
         "function adapters(uint256) view returns (address)",
         "function getAdaptersCount() view returns (uint256)",
