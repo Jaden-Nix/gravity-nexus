@@ -1143,8 +1143,8 @@ class NexusGalaxy {
             return;
         }
 
-        const hubAddr = "0x448688AD41C79D5E6c649B5BF3A12e68E4528707";
-        const newReactiveAddr = "0x760FBf81b2FE506dEc35dA1385E65C79A8fD12FB";
+        const hubAddr = CONTRACT_ADDRESSES.sepolia.remoteHub;
+        const newReactiveAddr = CONTRACT_ADDRESSES.lasna.reactiveContract;
 
         this.injectTerminalLog('action', '[SYSTEM] Linking new Lasna Rebalancer to RemoteHub...');
 

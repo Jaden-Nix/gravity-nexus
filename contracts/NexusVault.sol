@@ -100,6 +100,10 @@ contract NexusVault is Ownable {
     }
 
     function rebalance(uint256 fromIdx, uint256 toIdx, uint256 amount) public onlyAuthorized {
+        _rebalance(fromIdx, toIdx, amount);
+    }
+
+    function _rebalance(uint256 fromIdx, uint256 toIdx, uint256 amount) internal {
         require(fromIdx < adapters.length && toIdx < adapters.length, "Vault: Invalid adapter index");
         
         uint256 sourceBalance = adapters[fromIdx].totalAssets();
@@ -117,7 +121,7 @@ contract NexusVault is Ownable {
     /**
      * @notice Optimized rebalance engine with churn protection (threshold check)
      */
-    function checkYieldAndRebalance() external onlyAuthorized {
+    function checkYieldAndRebalance() external {
         uint256 count = adapters.length;
         if (count < 2) return;
 
@@ -132,7 +136,7 @@ contract NexusVault is Ownable {
                 uint256 currentRate = adapters[i].getSupplyRate();
                 // Only move if benefit > threshold (prevents gas waste for minor gains)
                 if (highestRate > currentRate && (highestRate - currentRate) >= yieldThresholdBps) {
-                    rebalance(i, bestIdx, balance);
+                    _rebalance(i, bestIdx, balance);
                 }
             }
         }
