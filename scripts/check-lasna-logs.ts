@@ -2,7 +2,7 @@ import { ethers } from "ethers";
 
 async function main() {
     const RPC = "https://lasna-rpc.rnk.dev";
-    const REBALANCER = "0x63D3CE267c516Aad7Badc02328c6D0C60f1a522c";
+    const REBALANCER = "0x760FBf81b2FE506dEc35dA1385E65C79A8fD12FB";
 
     const provider = new ethers.JsonRpcProvider(RPC);
 

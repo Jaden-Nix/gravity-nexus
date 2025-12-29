@@ -8,6 +8,7 @@ import "./interfaces/ILendingAdapter.sol";
 contract NexusVault is Ownable {
     IERC20 public immutable asset;
     ILendingAdapter[] public adapters;
+    mapping(address => bool) public authorizedCallers;
     uint256 public yieldThresholdBps = 50; // 0.5% = 50bps
 
     event Deposited(address indexed user, uint256 amount, uint256 adapterIdx);

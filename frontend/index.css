@@ -1319,9 +1319,10 @@ body::after {
 }
 
 .monitor-grid {
-    display: grid;
-    grid-template-columns: 1fr 60px 1fr;
+    display: flex;
     align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
     gap: var(--spacing-lg);
     margin-bottom: var(--spacing-xl);
 }
@@ -1342,6 +1343,8 @@ body::after {
 }
 
 .monitor-card {
+    flex: 1 1 280px;
+    max-width: 400px;
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);

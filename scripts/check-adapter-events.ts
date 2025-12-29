@@ -1,10 +1,10 @@
 import { ethers } from "hardhat";
 
 async function main() {
-    const ADAPTER_A = "0x6022868B710EA865dd6B21c27888847aC1F31ffE";
-    const adapter = await ethers.getContractAt("MockAdapter", ADAPTER_A);
+    const ADAPTER_C = "0x56168d09bac2A8e0235b097e50426EbAC88606D6";
+    const adapter = await ethers.getContractAt("MockAdapter", ADAPTER_C);
 
-    console.log("Checking Adapter A Events...");
+    console.log("Checking Adapter C (Morpho) Events...");
     const block = await ethers.provider.getBlockNumber();
     console.log("Current Sepolia Block:", block);
 

@@ -6,18 +6,20 @@ async function main() {
 
     const ADAPTER_A = "0x6022868B710EA865dd6B21c27888847aC1F31ffE";
     const ADAPTER_B = "0x75Faf823c7FC1c526F04B8B6DBda13200287bE85";
-    const HUB = "0x448688AD41C79D5E6c649B5BF3A12e68E4528707";
+    const ADAPTER_C = "0x56168d09bac2A8e0235b097e50426EbAC88606D6"; // Morpho
+    const HUB = "0xbB47EfeE770216222f1A97c0C2bb83B43F91F759"; // Mirror Hub
 
     const adapterA = await ethers.getContractAt("MockAdapter", ADAPTER_A);
     const adapterB = await ethers.getContractAt("MockAdapter", ADAPTER_B);
+    const adapterC = await ethers.getContractAt("MockAdapter", ADAPTER_C);
     const hub = await ethers.getContractAt("RemoteHub", HUB);
 
-    // Current yield was 3000. Set to 5000 to trigger a new event.
+    // Current yield was 1500. Set to 1800 to trigger a new event.
     console.log("\n--- TRIGGERING ORIGIN TRANSACTION ---");
-    console.log("Setting Adapter A Yield to 5000 bps...");
+    console.log("Setting Adapter C (Morpho) Yield to 1800 bps...");
 
-    // This emits RateUpdated(5000)
-    const tx = await adapterA.setSupplyRate(5000);
+    // This emits RateUpdated(1800)
+    const tx = await adapterC.setSupplyRate(1800);
     console.log("Origin TX Hash:", tx.hash);
 
     const receipt = await tx.wait();

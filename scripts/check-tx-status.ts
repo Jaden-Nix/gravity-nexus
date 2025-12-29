@@ -1,15 +1,32 @@
 import { ethers } from "hardhat";
 
 async function main() {
-    const txHash = "0x529746722a197180c9f0b470b9f59309583b0f1ef98c4434b5ba8f01e2e5db5b";
+    const [deployer] = await ethers.getSigners();
+    const address = deployer.address;
+    console.log("Checking status for:", address);
 
-    const receipt = await ethers.provider.getTransactionReceipt(txHash);
-    if (receipt) {
-        console.log("Transaction Status:", receipt.status === 1 ? "Success" : "Failed");
-        console.log("Block Number:", receipt.blockNumber);
-        console.log("Logs Count:", receipt.logs.length);
+    const [nonce, balance] = await Promise.all([
+        ethers.provider.getTransactionCount(address),
+        ethers.provider.getBalance(address)
+    ]);
+
+    console.log("Confirmed Nonce:", nonce);
+    console.log("Balance:", ethers.formatUnits(balance, 18), "ETH");
+
+    const pendingNonce = await ethers.provider.getTransactionCount(address, "pending");
+    console.log("Pending Nonce:", pendingNonce);
+
+    if (pendingNonce > nonce) {
+        console.log(`⚠️ You have ${pendingNonce - nonce} pending transaction(s).`);
+
+        // Peek at the pending transaction if possible
+        // Note: ethers can't easily get pending txs by nonce from RPC directly without custom methods
+        // but we can try to get the latest tx hash we sent if we had it.
+        // Instead, let's just show the current network gas price recommendation
+        const feeData = await ethers.provider.getFeeData();
+        console.log("Current Network Gas Price (Gwei):", ethers.formatUnits(feeData.gasPrice || 0n, "gwei"));
     } else {
-        console.log("Transaction not found or still pending.");
+        console.log("✅ No pending transactions in the mempool.");
     }
 }
 

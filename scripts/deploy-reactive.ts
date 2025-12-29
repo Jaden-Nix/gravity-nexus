@@ -13,15 +13,18 @@ async function main() {
     // Get addresses from deploy.ts run or from contracts.js
     // For this demo, we'll use the latest Sepolia addresses
     // Correct Sepolia Addresses from contracts.js
-    const sepVault = "0xaF4e198830f24B000D14A682f9c537D54fd76e49";
-    const sepRemoteHub = "0x448688AD41C79D5E6c649B5BF3A12e68E4528707";
+    const sepVault = "0xa0389d5836d0B9CcBF9cAe89caA4cbe0ddE18342";
+    const sepRemoteHub = "0xbB47EfeE770216222f1A97c0C2bb83B43F91F759";
 
     console.log(`Vault on Sepolia: ${sepVault}`);
     console.log(`RemoteHub on Sepolia: ${sepRemoteHub}`);
 
-    // Deploy ReactiveRebalancer
+    // Deploy ReactiveRebalancer with manual gas to fit in balance
     const ReactiveRebalancer = await ethers.getContractFactory("ReactiveRebalancer");
-    const rebalancer = await ReactiveRebalancer.deploy(sepVault, sepRemoteHub);
+    const rebalancer = await ReactiveRebalancer.deploy(sepVault, sepRemoteHub, {
+        gasPrice: ethers.parseUnits("40", "gwei"),
+        gasLimit: 2000000 // 2M gas
+    });
     await rebalancer.waitForDeployment();
 
     const rebalancerAddress = await rebalancer.getAddress();
