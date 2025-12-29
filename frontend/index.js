@@ -1120,28 +1120,39 @@ class NexusGalaxy {
             const adapterBAddr = await vault.adapters(1);
             const adapterCAddr = count > 2 ? await vault.adapters(2) : null;
 
-            // We use the custom function simulateRateChange (which MockAdapter has)
-            const mockABI = ["function simulateRateChange(uint256)"];
+            // Support both old (setSupplyRate) and new (simulateRateChange) function names
+            // for backwards compatibility with deployed contracts
+            const mockABI = ["function simulateRateChange(uint256)", "function setSupplyRate(uint256)"];
             const mockA = new ethers.Contract(adapterAAddr, mockABI, this.signer);
             const mockB = new ethers.Contract(adapterBAddr, mockABI, this.signer);
             const mockC = adapterCAddr ? new ethers.Contract(adapterCAddr, mockABI, this.signer) : null;
+
+            // Helper to call whichever function exists on the deployed contract
+            const setRate = async (adapter, rate) => {
+                try {
+                    return await adapter.simulateRateChange(rate);
+                } catch (e) {
+                    // Fallback to old function name for legacy deployments
+                    return await adapter.setSupplyRate(rate);
+                }
+            };
 
             // Sequential rate shifts to avoid nonce conflicts
             this.injectTerminalLog('system', '[DEMO] Sending sequential rate updates to Sepolia...');
 
             this.injectTerminalLog('action', '[DEMO] Updating Pool A (2% APY)...');
-            const txA = await mockA.simulateRateChange(200);
+            const txA = await setRate(mockA, 200);
             await txA.wait();
             this.injectTerminalLog('log', '[DEMO] Pool A Updated.');
 
             this.injectTerminalLog('action', '[DEMO] Updating Pool B (5% APY)...');
-            const txB = await mockB.simulateRateChange(500);
+            const txB = await setRate(mockB, 500);
             await txB.wait();
             this.injectTerminalLog('log', '[DEMO] Pool B Updated.');
 
             if (mockC) {
                 this.injectTerminalLog('action', '[DEMO] Updating Pool C (12% APY)...');
-                const txC = await mockC.simulateRateChange(1200);
+                const txC = await setRate(mockC, 1200);
                 await txC.wait();
                 this.injectTerminalLog('log', '[DEMO] Pool C Updated.');
             }
