@@ -9,19 +9,16 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Outfit:wght@300;400;600&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="index.css">
     <link rel="stylesheet" href="maintenance.css">
 </head>
 
 <body>
-    <!-- Animated Background -->
-    <div class="bg-orbs">
-        <div class="orb orb-1"></div>
-        <div class="orb orb-2"></div>
-        <div class="orb orb-3"></div>
-    </div>
+    <!-- Animated Background & Overlays -->
+    <div class="bg-orbs"></div>
+    <div class="bg-grid"></div>
 
     <!-- Header -->
     <header class="header">
@@ -32,11 +29,18 @@
         <nav class="nav">
             <a href="#dashboard" class="nav-link active">Dashboard</a>
             <a href="#ai" class="nav-link">AI Analytics</a>
+            <a href="docs.html" class="nav-link">Docs</a>
         </nav>
-        <button id="connectWallet" class="btn btn-primary">
-            <span class="btn-icon">◈</span>
-            Connect Wallet
-        </button>
+        <div class="header-actions">
+            <button id="theme-toggle" class="btn btn-secondary" title="Switch Energy State"
+                style="padding: var(--spacing-sm);">
+                <span id="theme-icon">⚡</span>
+            </button>
+            <button id="connectWallet" class="btn btn-primary">
+                <span class="btn-icon">◈</span>
+                Connect Wallet
+            </button>
+        </div>
     </header>
 
     <!-- Main Content -->
@@ -408,6 +412,19 @@
 
                 <div class="maintenance-box">
                     <div class="box-header">
+                        <span class="box-icon">🚀</span>
+                        <h4>Main Rebalance Demo</h4>
+                    </div>
+                    <p class="box-desc">Automated showcase: Sets best pool, deposits, flips yields, and triggers
+                        rebalance.
+                    </p>
+                    <button class="btn btn-primary btn-full" id="runRebalanceDemo">
+                        Run Rebalance Demo
+                    </button>
+                </div>
+
+                <div class="maintenance-box">
+                    <div class="box-header">
                         <span class="box-icon">🎲</span>
                         <h4>Yield Chaos Simulator</h4>
                     </div>
@@ -438,8 +455,8 @@
         <div class="footer-content">
             <span>Nexus Galaxy © 2024</span>
             <div class="footer-links">
-                <a href="https://github.com" target="_blank">GitHub</a>
-                <a href="#" target="_blank">Docs</a>
+                <a href="https://github.com/Jaden-Nix/gravity-nexus" target="_blank">GitHub Repo</a>
+                <a href="docs.html">Documentation</a>
                 <a href="https://sepolia.etherscan.io" target="_blank">Etherscan</a>
             </div>
         </div>

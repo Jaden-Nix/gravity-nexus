@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract MockAdapter is ILendingAdapter, Ownable {
     IERC20 public immutable underlying;
-    uint256 public supplyRate;
+    uint256 public supplyRate; // Current rate in basis points (100 = 1%)
     
     // Simulate protocol holdings
     uint256 private _totalDeposited;

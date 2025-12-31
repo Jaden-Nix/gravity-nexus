@@ -29,7 +29,7 @@ interface ILendingAdapter {
     
     /**
      * @notice Returns the current supply rate (APY)
-     * @return rate The current supply rate with 18 decimals
+     * @return rate The current supply rate in basis points (100 = 1%)
      */
     function getSupplyRate() external view returns (uint256);
 }

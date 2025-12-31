@@ -38,10 +38,17 @@ async function main() {
     const adapterBAddress = await adapterB.getAddress();
     console.log("Adapter B (High Yield) deployed to:", adapterBAddress);
 
+    // Pool C: 4% APY
+    const adapterC = await MockAdapter.deploy(tokenAddress, 400, { gasPrice: ethers.parseUnits("1.5", "gwei"), gasLimit: 2000000 });
+    await adapterC.waitForDeployment();
+    const adapterCAddress = await adapterC.getAddress();
+    console.log("Adapter C (Morpho) deployed to:", adapterCAddress);
+
     // 4. Add Adapters to Vault
     console.log("Adding adapters to vault...");
     await (await vault.addAdapter(adapterAAddress, { gasPrice: ethers.parseUnits("1.5", "gwei"), gasLimit: 500000 })).wait();
     await (await vault.addAdapter(adapterBAddress, { gasPrice: ethers.parseUnits("1.5", "gwei"), gasLimit: 500000 })).wait();
+    await (await vault.addAdapter(adapterCAddress, { gasPrice: ethers.parseUnits("1.5", "gwei"), gasLimit: 500000 })).wait();
     console.log("Adapters added.");
 
     // 5. Deploy ReactiveNexus

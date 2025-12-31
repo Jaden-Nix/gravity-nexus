@@ -152,6 +152,23 @@ class NexusGalaxy {
         // Wallet connect button
         document.getElementById('connectWallet').addEventListener('click', () => this.connectWallet());
 
+        // Theme Toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+
+        // Initial Theme Check
+        if (localStorage.getItem('theme') === 'light') {
+            document.body.classList.add('light-mode');
+            themeIcon.textContent = '🌙';
+        }
+
+        themeToggle.addEventListener('click', () => {
+            const isLight = document.body.classList.toggle('light-mode');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+            themeIcon.textContent = isLight ? '🌙' : '⚡';
+            this.injectTerminalLog(isLight ? 'system' : 'action', `[SYSTEM] Energy State shifted to ${isLight ? 'HIGH-ENERGY (Light)' : 'GROUND (Dark)'}`);
+        });
+
         // Navigation smooth scroll
         document.querySelectorAll('.nav-link').forEach(link => {
             link.addEventListener('click', (e) => {
@@ -196,6 +213,7 @@ class NexusGalaxy {
         // Maintenance & Automation Controls
         document.getElementById('demoPrep').addEventListener('click', () => this.demoPrep());
         document.getElementById('simulateShift').addEventListener('click', () => this.simulateMarketShift());
+        document.getElementById('runRebalanceDemo').addEventListener('click', () => this.runRebalanceDemo());
 
         // Link Reactive Network button (if needed)
         const linkBtn = document.getElementById('linkReactive');
@@ -966,7 +984,7 @@ class NexusGalaxy {
                 <span class="activity-action">${action}</span>
                 <span class="activity-meta">${details}</span>
             </div>
-            ${link ? `<a href="${link}" target="_blank" class="activity-link">View →</a>` : ''}
+            ${link ? `<a href="${link}" target="_blank" class="activity-link" title="Verify this transaction on Etherscan (Public Block Explorer)">VERIFY_PROOF</a>` : ''}
         `;
 
         // Add to top of list
@@ -1083,8 +1101,33 @@ class NexusGalaxy {
             await appTx.wait();
             this.injectTerminalLog('log', '[DEMO] Step 2 Complete: Vault authorized for life.');
 
+            // Sequential rate shifts to avoid nonce conflicts
+            this.injectTerminalLog('system', '[DEMO] Step 3: Setting Initial Yields (Optimal: Pool A)...');
+            const mockABI = ["function simulateRateChange(uint256)", "function setSupplyRate(uint256)"];
+            const vault = this.contracts.nexusVault;
+            const adapterAAddr = await vault.adapters(0);
+            const adapterBAddr = await vault.adapters(1);
+            const adapterCAddr = Number(await vault.getAdaptersCount()) > 2 ? await vault.adapters(2) : null;
+
+            const mockA = new ethers.Contract(adapterAAddr, mockABI, this.signer);
+            const mockB = new ethers.Contract(adapterBAddr, mockABI, this.signer);
+            const mockC = adapterCAddr ? new ethers.Contract(adapterCAddr, mockABI, this.signer) : null;
+
+            const setRate = async (adapter, rate) => {
+                try {
+                    return await adapter.simulateRateChange(rate);
+                } catch (e) {
+                    return await adapter.setSupplyRate(rate);
+                }
+            };
+
+            await (await setRate(mockA, 2000)).wait(); // 20%
+            await (await setRate(mockB, 1000)).wait(); // 10%
+            if (mockC) await (await setRate(mockC, 500)).wait(); // 5%
+
             btn.innerHTML = '✅ Account Ready';
             this.injectTerminalLog('system', '[DEMO] Account prepared for Zero-Friction testing!');
+            this.injectTerminalLog('log', '[DEMO] Initial Yields Set: Pool A is now the 20% leader.');
             setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 3000);
 
             this.updateVaultInfo();
@@ -1137,7 +1180,7 @@ class NexusGalaxy {
                 }
             };
 
-            // Sequential rate shifts to avoid nonce conflicts
+            // Sequential rate shifts to ensure rebalance opportunity
             this.injectTerminalLog('system', '[DEMO] Sending sequential rate updates to Sepolia...');
 
             this.injectTerminalLog('action', '[DEMO] Updating Pool A (2% APY)...');
@@ -1145,32 +1188,31 @@ class NexusGalaxy {
             await txA.wait();
             this.injectTerminalLog('log', '[DEMO] Pool A Updated.');
 
-            this.injectTerminalLog('action', '[DEMO] Updating Pool B (5% APY)...');
-            const txB = await setRate(mockB, 500);
-            await txB.wait();
-            this.injectTerminalLog('log', '[DEMO] Pool B Updated.');
-
             if (mockC) {
-                this.injectTerminalLog('action', '[DEMO] Updating Pool C (12% APY)...');
-                const txC = await setRate(mockC, 1200);
+                this.injectTerminalLog('action', '[DEMO] Updating Pool C (30% APY)...');
+                const txC = await setRate(mockC, 3000);
                 await txC.wait();
                 this.injectTerminalLog('log', '[DEMO] Pool C Updated.');
+                this.injectTerminalLog('warn', '[DEMO] Yield Shift Confirmed: Pool C is now the clear winner (30%)!');
+            } else {
+                this.injectTerminalLog('action', '[DEMO] Updating Pool B (30% APY)...');
+                const txB = await setRate(mockB, 3000);
+                await txB.wait();
+                this.injectTerminalLog('log', '[DEMO] Pool B Updated.');
+                this.injectTerminalLog('warn', '[DEMO] Yield Shift Confirmed: Pool B is now the clear winner (30%)!');
             }
 
-            this.injectTerminalLog('log', '[DEMO] Yield Shift Confirmed: Pool C is now the clear winner!');
-
             // For Demo: Trigger rebalance directly to show immediate fund movement.
-            // In production, the Reactive Network would handle this automatically,
-            // but for the demo we want instant visual feedback for judges.
             this.injectTerminalLog('action', '[DEMO] Triggering vault optimization...');
             try {
+                // Ensure we use the correct method name based on modern vault interface
                 const rebalanceTx = await vault.connect(this.signer).checkYieldAndRebalance();
                 await rebalanceTx.wait();
                 this.injectTerminalLog('system', '[DEMO] ✅ Funds rebalanced to highest-yield pool!');
-                this.addActivity('⚡', 'Auto-Rebalance', 'Funds moved to Pool B (highest yield)');
+                this.addActivity('⚡', 'Auto-Rebalance', 'Funds moved to optimal pool');
             } catch (rebalanceError) {
                 console.warn("Rebalance trigger failed:", rebalanceError);
-                this.injectTerminalLog('error', `[DEMO] Rebalance failed: ${rebalanceError.message.slice(0, 60)}`);
+                this.injectTerminalLog('error', `[DEMO] Rebalance failed: ${e.message.slice(0, 60)}`);
             }
 
             btn.innerHTML = '✅ Chaos Injected';
@@ -1219,6 +1261,115 @@ class NexusGalaxy {
         } catch (e) {
             console.error(e);
             this.injectTerminalLog('error', `[SYSTEM] Link failed: ${e.message.slice(0, 50)}`);
+        }
+    }
+
+    async runRebalanceDemo() {
+        if (!this.account) return alert("Connect wallet first!");
+        const btn = document.getElementById('runRebalanceDemo');
+        const originalText = btn.innerHTML;
+        const chainKey = this.getChainKey();
+
+        try {
+            btn.innerHTML = '<span class="btn-icon">⚡</span> Running Showcase...';
+            btn.disabled = true;
+            this.injectTerminalLog('system', '[DEMO] STARTING SHOWCASE REBALANCE DEMO');
+
+            const vault = this.contracts.nexusVault;
+            const token = this.contracts.assetToken;
+            const addresses = CONTRACT_ADDRESSES[chainKey];
+
+            if (!vault || !token || !addresses) {
+                this.injectTerminalLog('error', '[DEMO] Contracts not linked for this network.');
+                const expected = chainId === '0x7a69' ? 'Localhost' : 'Sepolia';
+                alert(`Please switch to ${expected} in MetaMask!`);
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                return;
+            }
+
+            // Verify connectivity
+            try {
+                await vault.getAdaptersCount();
+            } catch (connErr) {
+                console.error("Connectivity check failed:", connErr);
+                this.injectTerminalLog('error', '[DEMO] Connectivity Error: Ensure MetaMask is on the correct network and local node is running.');
+                alert(`Network Mismatch? Ensure MetaMask is on ${chainKey === 'localhost' ? 'Localhost (31337)' : 'Sepolia'}.`);
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                return;
+            }
+
+            const count = Number(await vault.getAdaptersCount());
+            const adapterAAddr = await vault.adapters(0);
+            const adapterBAddr = await vault.adapters(1);
+            const adapterCAddr = count > 2 ? await vault.adapters(2) : null;
+
+            const mockABI = ["function simulateRateChange(uint256)", "function setSupplyRate(uint256)"];
+            const mockA = new ethers.Contract(adapterAAddr, mockABI, this.signer);
+            const mockB = new ethers.Contract(adapterBAddr, mockABI, this.signer);
+            const mockC = adapterCAddr ? new ethers.Contract(adapterCAddr, mockABI, this.signer) : null;
+
+            const setRate = async (adapter, rate) => {
+                try {
+                    const tx = await adapter.simulateRateChange(rate);
+                    return tx;
+                } catch (e) {
+                    return await adapter.setSupplyRate(rate);
+                }
+            };
+
+            // ➔ STEP 1: INITIAL YIELD SETUP
+            this.injectTerminalLog('action', '➔ STEP 1: Setting Initial Yields (Optimal: Pool A @ 20%)...');
+            await (await setRate(mockA, 2000)).wait(); // 20%
+            await (await setRate(mockB, 1000)).wait(); // 10%
+            if (mockC) await (await setRate(mockC, 500)).wait(); // 5%
+            this.injectTerminalLog('log', '✅ Pool A is now optimal leader.');
+
+            // ➔ STEP 2: DEPOSIT
+            const amount = ethers.parseUnits("0.1", 18);
+            this.injectTerminalLog('action', '➔ STEP 2: Depositing 0.1 mUSDC into Vault...');
+
+            // Check allowance
+            const allowance = await token.allowance(this.account, addresses.nexusVault);
+            if (allowance < amount) {
+                this.injectTerminalLog('action', 'Approving Vault...');
+                await (await token.connect(this.signer).approve(addresses.nexusVault, ethers.MaxUint256)).wait();
+            }
+
+            const txDeposit = await vault.connect(this.signer).deposit(amount);
+            await txDeposit.wait();
+            this.injectTerminalLog('log', '✅ Deposited. Funds landed in Pool A.');
+
+            // ➔ STEP 3: YIELD SHOCK
+            this.injectTerminalLog('action', '➔ STEP 3: Market Shock! Changing Yield Leaders...');
+            await (await setRate(mockA, 200)).wait();
+            if (mockC) {
+                await (await setRate(mockC, 3000)).wait();
+                this.injectTerminalLog('warn', '⚠️ REBALANCE OPPORTUNITY: Pool C (3000 bps) >> Pool A (200 bps)');
+            } else {
+                await (await setRate(mockB, 3000)).wait();
+                this.injectTerminalLog('warn', '⚠️ REBALANCE OPPORTUNITY: Pool B (3000 bps) >> Pool A (200 bps)');
+            }
+
+            // ➔ STEP 4: TRIGGER REBALANCE
+            this.injectTerminalLog('action', '➔ STEP 4: Triggering Reactive Automation...');
+            const txRebalance = await vault.connect(this.signer).checkYieldAndRebalance();
+            await txRebalance.wait();
+            this.injectTerminalLog('system', '🚀 SUCCESS: Rebalance complete!');
+
+            this.updateStrategyMonitor();
+            this.updateVaultInfo();
+            this.addActivity('🔄', 'Full Showcase', 'Auto-rebalanced to highest yield');
+
+            btn.innerHTML = '✅ Demo Complete';
+            setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 3000);
+
+        } catch (e) {
+            console.error(e);
+            this.injectTerminalLog('error', `[DEMO] Showcase Failed: ${e.message.slice(0, 60)}`);
+            btn.innerHTML = '❌ Failed';
+            setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 2000);
         }
     }
 

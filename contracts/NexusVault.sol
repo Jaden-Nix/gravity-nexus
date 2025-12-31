@@ -9,7 +9,7 @@ contract NexusVault is Ownable {
     IERC20 public immutable asset;
     ILendingAdapter[] public adapters;
     mapping(address => bool) public authorizedCallers;
-    uint256 public yieldThresholdBps = 50; // 0.5% = 50bps
+    uint256 public yieldThresholdBps = 50; // 0.5% in basis points (100 = 1%)
 
     event Deposited(address indexed user, uint256 amount, uint256 adapterIdx);
     event Withdrawn(address indexed user, uint256 amount);

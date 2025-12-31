@@ -14,60 +14,30 @@ const CHAIN_CONFIG = {
         zkmlVerifier: "0xD29Da591e7447B7321695488EfE983486FFb82c0",
         assetToken: "0x828c06dE0F2D60E2ce726bb99a6572b88f4BdE53"
     },
-    arbitrum: {
-        chainId: '0x66eee',
-        chainName: 'Arbitrum Sepolia',
-        rpcUrls: ['https://sepolia-rollup.arbitrum.io/rpc'],
-        nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 }
-    },
     localhost: {
         chainId: '0x7a69',
         chainName: 'Localhost 8545',
         rpcUrls: ['http://127.0.0.1:8545'],
-        nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
-        remoteHub: "0x0236A17a010c9262af2697E59A0cbce6da218D1d",
-        nexusVault: "0x1cE3FD7dBAA3d41B692340C8c9181be99D3011b8",
-        reactiveNexus: "0xd358be542bb239890E758Ee6f2bB7e7795d0c0Da",
-        mlModel: "0x82701705Ca21045995a4A1a0B5d4482b3bCffde2",
-        zkmlVerifier: "0x9296FA3bFb87B6067549d7b11584967D90F34Cd7",
-        assetToken: "0x227A7912a1CF41A4A85b5f1CF9b13F0a35E13282"
-    },
-    lasna: {
-        chainId: '0x512577',
-        chainName: 'Reactive Lasna',
-        rpcUrls: ['https://lasna-rpc.rnk.dev'],
-        nativeCurrency: { name: 'REACT', symbol: 'REACT', decimals: 18 }
+        nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 }
     }
 };
 
 const CONTRACT_ADDRESSES = {
-    // Latest Localhost Deployment (Turn 1272)
     localhost: {
-        remoteHub: "0x0236A17a010c9262af2697E59A0cbce6da218D1d",
-        nexusVault: "0x1cE3FD7dBAA3d41B692340C8c9181be99D3011b8",
-        reactiveNexus: "0xd358be542bb239890E758Ee6f2bB7e7795d0c0Da",
-        mlModel: "0x82701705Ca21045995a4A1a0B5d4482b3bCffde2",
-        zkmlVerifier: "0x9296FA3bFb87B6067549d7b11584967D90F34Cd7",
-        assetToken: "0x227A7912a1CF41A4A85b5f1CF9b13F0a35E13282"
+        remoteHub: "0x322813Fd9A801c5507c9de605d63CEA4f2CE6c44",
+        nexusVault: "0x0B306BF915C4d645ff596e518fAf3F9669b97016",
+        reactiveNexus: "0x4ed7c70F96B99c776995fB64377f0d4aB3B0e1C1",
+        mlModel: "0xa85233C63b9Ee964Add6F2cffe00Fd84eb32338f",
+        zkmlVerifier: "0x4A679253410272dd5232B3Ff7cF5dbB88f295319",
+        assetToken: "0x9A676e781A523b5d0C0e43731313A708CB607508"
     },
-    // Ethereum Sepolia - Deployed
     sepolia: {
         remoteHub: "0x5E1B04116a8F3cBf57b35CCdc42F96115Ca3Ee69",
         nexusVault: "0xB7cd5b44Fcd3646ec08954Ecc6FDe43f334dF18f",
         reactiveNexus: "0x11c2813851B649382cC72A64Ebcd0958467B705B",
         mlModel: "0x8429D458ccECA475AC28Aa29846344603e231E43",
         zkmlVerifier: "0xD29Da591e7447B7321695488EfE983486FFb82c0",
-        assetToken: "0x828c06dE0F2D60E2ce726bb99a6572b88f4BdE53",
-        adapterC: "0x56168d09bac2A8e0235b097e50426EbAC88606D6"
-    },
-    // Arbitrum Sepolia - Deployed
-    arbitrum: {
-        remoteHub: "0x9Fd448E930cE937d8dDCdF6e4F5bE8B9C6aF3581",
-        nexusVault: "0x88CbFB989b9D87E94Bf94801dd92Ac770deC36Fe",
-        reactiveNexus: "0x7d6a70f8303385D182ABAd16a8159B6A27FE6B25",
-        mlModel: "0x850874fD813Ac1B5d21989b25A639950c68cD940",
-        zkmlVerifier: "0xB9b6645ca21f4D4ECB86F0a7064E34DF2f71B51C",
-        assetToken: "0xc0c9F3ff25517E7fF83d8be747F544c8595ADEDB"
+        assetToken: "0x828c06dE0F2D60E2ce726bb99a6572b88f4BdE53"
     },
     lasna: {
         reactiveContract: "0x760FBf81b2FE506dEc35dA1385E65C79A8fD12FB"

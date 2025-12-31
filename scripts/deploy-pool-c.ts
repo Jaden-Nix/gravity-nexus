@@ -5,8 +5,8 @@ async function main() {
     console.log(`\n=== DEPLOYING 3RD POOL (POOL C - MORPHO) ===`);
     console.log(`Deploying from: ${deployer.address}\n`);
 
-    const vaultAddr = "0xa0389d5836d0B9CcBF9cAe89caA4cbe0ddE18342";
-    const assetAddr = "0x828c06dE0F2D60E2ce726bb99a6572b88f4BdE53";
+    const vaultAddr = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
+    const assetAddr = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 
     // 1. Deploy MockAdapter C
     console.log("1. Deploying MockAdapter C...");

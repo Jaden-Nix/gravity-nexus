@@ -10,8 +10,12 @@ async function main() {
     // Dynamic Address Mapping
     const ADDR_MAP: { [key: string]: any } = {
         "11155111": { // Sepolia
-            vault: "0xaF4e198830f24B000D14A682f9c537D54fd76e49",
+            vault: "0xB7cd5b44Fcd3646ec08954Ecc6FDe43f334dF18f",
             reactive: "0x11c2813851B649382cC72A64Ebcd0958467B705B"
+        },
+        "31337": { // Hardhat Localhost
+            vault: "0x0B306BF915C4d645ff596e518fAf3F9669b97016",
+            reactive: "0x4ed7c70F96B99c776995fB64377f0d4aB3B0e1C1"
         },
         "421614": { // Arbitrum Sepolia
             vault: "0x88CbFB989b9D87E94Bf94801dd92Ac770deC36Fe",

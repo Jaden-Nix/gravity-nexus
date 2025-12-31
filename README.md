@@ -146,6 +146,11 @@ contract NexusVault is Ownable {
 }
 ```
 
+### 📊 Units & Thresholds
+- **Basis Points (bps)**: All supply rates and thresholds are denominated in bps (e.g., `100 = 1.00%`).
+- **Standardized Interface**: `getSupplyRate()` returns values in bps.
+- **Configurable Condition**: `yieldThreshold = 100` enforces a strict 1% minimum gap before any rebalance is triggered.
+
 **Key Features:**
 - **Adapter-Based Architecture**: Supports unlimited lending pools through standardized adapters
 - **Authorization System**: Only owner or authorized Reactive contracts can trigger rebalancing
@@ -337,6 +342,24 @@ npx hardhat run scripts/deploy.ts --network sepolia
 # Deploy Reactive contracts to Lasna
 npx hardhat run scripts/deploy-reactive.ts --network kopli
 ```
+
+---
+
+## 🚀 Showcase Rebalance Demo (Main Judge Path)
+
+This is the primary automated flow to demonstrate the end-to-end rebalancing capability. It handles yield manipulation, capital movement, and logic verification in a single sequence.
+
+### **Option 1: Terminal Command**
+Execute the following to see the step-by-step state transitions in your terminal:
+```bash
+npx hardhat run scripts/showcase-rebalance.ts --network localhost
+```
+
+### **Option 2: Dashboard 1-Click**
+1. Ensure your wallet is connected to Sepolia or Localhost.
+2. Scroll to the **Automation Lab** section at the bottom of the dashboard.
+3. Click **"Run Rebalance Demo"**.
+4. Watch the **Vault Strategy Monitor** and the **Live Reactive Node Feed** terminal to see the capital shift in real-time.
 
 ---
 

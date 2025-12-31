@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protocol Documentation | Nexus Galaxy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Outfit:wght@300;400;600&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+    <style>
+        :root {
+            --sidebar-width: 280px;
+        }
+
+        .docs-layout {
+            display: grid;
+            grid-template-columns: var(--sidebar-width) 1fr;
+            min-height: 100vh;
+        }
+
+        .docs-sidebar {
+            position: sticky;
+            top: 80px;
+            height: calc(100vh - 80px);
+            padding: var(--spacing-xl);
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            overflow-y: auto;
+        }
+
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+        }
+
+        .sidebar-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: var(--transition-fast);
+        }
+
+        .sidebar-link:hover,
+        .sidebar-link.active {
+            color: var(--accent-primary);
+            padding-left: var(--spacing-sm);
+        }
+
+        .docs-main {
+            padding: var(--spacing-2xl);
+            max-width: 1000px;
+        }
+
+        .docs-header {
+            margin-bottom: var(--spacing-2xl);
+            padding-bottom: var(--spacing-lg);
+            border-bottom: 2px solid var(--accent-primary);
+        }
+
+        .docs-header h1 {
+            font-size: 3rem;
+            color: var(--text-primary);
+        }
+
+        .docs-section {
+            margin-bottom: var(--spacing-2xl);
+            scroll-margin-top: 100px;
+        }
+
+        .docs-section h2 {
+            font-family: var(--font-display);
+            font-size: 1.8rem;
+            margin-bottom: var(--spacing-lg);
+            color: var(--accent-primary);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .docs-section h2::before {
+            content: '>>';
+            color: var(--accent-tertiary);
+            font-size: 1rem;
+        }
+
+        .docs-content {
+            font-family: var(--font-ui);
+            line-height: 1.8;
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+        }
+
+        .docs-content p {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .docs-content ul {
+            margin-bottom: var(--spacing-lg);
+            padding-left: var(--spacing-xl);
+        }
+
+        .docs-content li {
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .code-block {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-color);
+            padding: var(--spacing-lg);
+            margin: var(--spacing-lg) 0;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            overflow-x: auto;
+            color: #d1d5db;
+            position: relative;
+        }
+
+        .code-block::before {
+            content: 'TERMINAL_OUTPUT';
+            position: absolute;
+            top: 0;
+            right: 15px;
+            font-size: 0.6rem;
+            color: var(--text-muted);
+        }
+
+        .highlight {
+            color: var(--accent-primary);
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--spacing-lg);
+            margin-top: var(--spacing-xl);
+        }
+
+        .tech-card {
+            background: var(--bg-glass);
+            border: 1px dashed var(--accent-dim);
+            padding: var(--spacing-lg);
+        }
+
+        .tech-card h3 {
+            font-size: 0.9rem;
+            margin-bottom: var(--spacing-sm);
+            color: var(--accent-secondary);
+        }
+
+        @media (max-width: 768px) {
+            .docs-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .docs-sidebar {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-orbs"></div>
+    <div class="bg-grid"></div>
+
+    <header class="header">
+        <div class="logo">
+            <div class="logo-icon">⬡</div>
+            <span class="logo-text">Nexus Galaxy</span>
+        </div>
+        <div class="header-actions">
+            <button id="theme-toggle" class="btn btn-secondary" title="Switch Energy State"
+                style="padding: var(--spacing-sm);">
+                <span id="theme-icon">⚡</span>
+            </button>
+            <a href="index.html" class="btn btn-primary">Back to App</a>
+        </div>
+    </header>
+
+    <div class="docs-layout">
+        <aside class="docs-sidebar">
+            <nav class="sidebar-nav">
+                <a href="#introduction" class="sidebar-link">01_Introduction</a>
+                <a href="#infrastructure" class="sidebar-link">02_Infrastructure</a>
+                <a href="#reactive" class="sidebar-link">03_Reactive_Logic</a>
+                <a href="#zkml" class="sidebar-link">04_ZKML_Systems</a>
+                <a href="#contracts" class="sidebar-link">05_Smart_Contracts</a>
+                <a href="#quickstart" class="sidebar-link">06_Quick_Start</a>
+            </nav>
+        </aside>
+
+        <main class="docs-main">
+            <header class="docs-header">
+                <h1>Technical_Protocol</h1>
+                <p class="activity-meta">Revision 1.4.2 // Autonomous Liquidity Layer</p>
+            </header>
+
+            <section id="introduction" class="docs-section">
+                <h2>Introduction</h2>
+                <div class="docs-content">
+                    <p>Gravity Nexus is a next-generation decentralized yield optimization protocol. It leverages <span
+                            class="highlight">Reactive Smart Contracts</span> and <span class="highlight">ZK-Machine
+                            Learning</span> to automate capital movement across chains without centralized keepers.</p>
+                    <p>Unlike traditional vaults that rely on external bots (Gelato, Chainlink Automation), Gravity
+                        Nexus is natively autonomous, listening to on-chain yield shifts and reacting in real-time.</p>
+                </div>
+            </section>
+
+            <section id="infrastructure" class="docs-section">
+                <h2>System Blueprints</h2>
+                <div class="docs-content">
+                    <p>The architecture is divided into three distinct functional layers:</p>
+                    <div class="tech-grid">
+                        <div class="tech-card">
+                            <h3>01_Capital_Layer</h3>
+                            <p>Settled on <strong>Ethereum Sepolia</strong>. Holds user funds in
+                                <code>NexusVault.sol</code> and connects to lending pools via adapters.</p>
+                        </div>
+                        <div class="tech-card">
+                            <h3>02_Logic_Layer</h3>
+                            <p>Handles on-chain yield monitoring and threshold verification via
+                                <code>ReactiveNexus.sol</code>.</p>
+                        </div>
+                        <div class="tech-card">
+                            <h3>03_Automation_Layer</h3>
+                            <p>Resides on the <strong>Reactive Network (Lasna)</strong>. Provides event-driven
+                                triggering for cross-chain rebalancing.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="reactive" class="docs-section">
+                <h2>Reactive Network Logic</h2>
+                <div class="docs-content">
+                    <p>The heart of our automation is the <strong>Trigger-and-Pull Architecture</strong>. This keeps the
+                        automation layer stateless and highly scalable.</p>
+                    <div class="code-block">
+                        // Reactive Lifecycle
+                        1. RateUpdated event emitted on Sepolia
+                        2. ReactiveRebalancer (Lasna) detects event via rsync
+                        3. react() constructs a cross-chain callback
+                        4. RemoteHub (Sepolia) receives OPTIMIZE trigger
+                        5. NexusVault rebalances capital atomically
+                    </div>
+                    <p>This "Inversion of Control" ensures that the vault itself manages its health, using the Reactive
+                        Network as a decentralized nervous system.</p>
+                </div>
+            </section>
+
+            <section id="zkml" class="docs-section">
+                <h2>ZKML Verification</h2>
+                <div class="docs-content">
+                    <p>We use **LSTM (Long Short-Term Memory)** models to predict optimal allocations. To prevent "Black
+                        Box" risk, every prediction is backed by a ZK-SNARK proof.</p>
+                    <ul>
+                        <li><strong>Inference:</strong> Performed off-chain using optimized Python models.</li>
+                        <li><strong>Proof Generation:</strong> EZKL generates a proof that the model weights were
+                            followed exactly.</li>
+                        <li><strong>On-Chain Verification:</strong> <code>ZKMLVerifier.sol</code> checks the proof
+                            before allowing high-value rebalances.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="contracts" class="docs-section">
+                <h2>Contract Matrix</h2>
+                <div class="docs-content">
+                    <p>Our core contracts are audited and verified on Sepolia and Lasna:</p>
+                    <div class="code-block">
+                        NexusVault: 0xa86a...b40E (Sepolia)
+                        RemoteHub: 0x34bE...6B9A (Sepolia)
+                        Rebalancer: 0x6cAf...74aA (Lasna Kopli)
+                    </div>
+                </div>
+            </section>
+
+            <section id="quickstart" class="docs-section">
+                <h2>Quick Start Guide</h2>
+                <div class="docs-content">
+                    <p>Ready to deploy capital? Follow the standard operation procedure:</p>
+                    <ul>
+                        <li><strong>SYNC:</strong> Connect wallet to Sepolia and authorize the vault.</li>
+                        <li><strong>INTENT:</strong> Provide a strategy (e.g., "prioritize low-volatility pools").</li>
+                        <li><strong>DEPOSIT:</strong> Transfer mUSDC into the NexusVault.</li>
+                        <li><strong>MONITOR:</strong> Watch the Strategy Flux monitor for automated shifts.</li>
+                    </ul>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="index.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Apply theme on load
+            if (localStorage.getItem('theme') === 'light') {
+                document.body.classList.add('light-mode');
+                document.getElementById('theme-icon').textContent = '🌙';
+            }
+
+            // Smooth scroll for sidebar links
+            document.querySelectorAll('.sidebar-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+                    e.target.classList.add('active');
+                });
+            });
+
+            // Update active link on scroll
+            window.addEventListener('scroll', () => {
+                const sections = document.querySelectorAll('.docs-section');
+                const navLinks = document.querySelectorAll('.sidebar-link');
+
+                let current = '';
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    if (pageYOffset >= sectionTop - 120) {
+                        current = section.getAttribute('id');
+                    }
+                });
+
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href').includes(current)) {
+                        link.classList.add('active');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

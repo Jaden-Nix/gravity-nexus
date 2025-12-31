@@ -12,7 +12,7 @@ interface INexusVault {
 
 contract ReactiveNexus is Ownable {
     INexusVault public nexusVault;
-    uint256 public yieldThreshold = 100; // 1% difference (assuming 18 decimal percentage or basis points)
+    uint256 public yieldThreshold = 100; // 1% difference in basis points (100 = 1%)
 
     event ActionTriggered(string action, uint256 fromIdx, uint256 toIdx, uint256 amount);
     event ActionExecuted(string result);
