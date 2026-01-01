@@ -401,6 +401,8 @@ For frictionless hackathon demos, Nexus Galaxy includes an **Automation Lab** di
 | **Sepolia** | NexusVault | `0xB7cd5b44Fcd3646ec08954Ecc6FDe43f334dF18f` |
 | **Sepolia** | ReactiveNexus | `0x11c2813851B649382cC72A64Ebcd0958467B705B` |
 | **Sepolia** | RemoteHub | `0x5E1B04116a8F3cBf57b35CCdc42F96115Ca3Ee69` |
+| **Sepolia** | MLModel (Registry) | `0x8429D458ccECA475AC28Aa29846344603e231E43` |
+| **Sepolia** | ZKMLVerifier (Groth16) | `0xD29Da591e7447B7321695488EfE983486FFb82c0` |
 | **Sepolia** | MockToken | `0x828c06dE0F2D60E2ce726bb99a6572b88f4BdE53` |
 | **Lasna** | ReactiveRebalancer | `0x760FBf81b2FE506dEc35dA1385E65C79A8fD12FB` |
 | **Lasna** | **Team System Contract** | `0x0000000000000000000000000000000000000051` |
@@ -520,6 +522,8 @@ Nexus Galaxy does not just deploy Solidity; it uses **ReactiveRebalancer.sol** o
 | **Reactive** | ReactiveRebalancer | `0x760FBf81b2FE506dEc35dA1385E65C79A8fD12FB` |
 | **Destination** | RemoteHub | `0x5E1B04116a8F3cBf57b35CCdc42F96115Ca3Ee69` |
 | **Destination** | NexusVault | `0xB7cd5b44Fcd3646ec08954Ecc6FDe43f334dF18f` |
+| **Destination** | MLModel | `0x8429D458ccECA475AC28Aa29846344603e231E43` |
+| **Destination** | ZKMLVerifier | `0xD29Da591e7447B7321695488EfE983486FFb82c0` |
 | **Team (Official)**| System Contract | `0x0000000000000000000000000000000000000051` |
 
 ### 📊 Live Yield Pools (N-Pool Scalability Proof)
@@ -539,6 +543,12 @@ Nexus Galaxy does not just deploy Solidity; it uses **ReactiveRebalancer.sol** o
 | **Origin** | Sepolia | `0xf52287f9656b3168517a8247cf489dd9e8c58a7b8ceb6da8cd77d169fdabf867` |
 | **Reactive** | Lasna | `0x83fac4436763fdb7c3367f70b1192c0f49c6e7634feda495f5b58ffc807b0927` |
 | **Destination** | Sepolia | `0xd515ed3f5692efe01786c6af8585c58740344c704a75945523c0d0f2e8ea72fe` |
+
+#### 🧠 ZKML Infrastructure Deployment (Sepolia)
+| Contract | Transaction Hash |
+|----------|------------------|
+| **MLModel** | `0x07423a3615e223a3baf4ebf43e45f070e0615316f147f6a9654048bdc792bab8` |
+| **ZKMLVerifier** | `0x6895b4a59af406ef3a2ffc5058e9b791b969b261609b3594151a8ca50701d267` |
 
 ### 4. Problem Solved
 **The Problem:** Cross-chain rebalancing usually requires centralized keepers (Gelato/Chainlink) or custom bots that are expensive and introduce a single point of failure.
