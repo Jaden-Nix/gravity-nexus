@@ -4,13 +4,15 @@ pragma solidity ^0.8.24;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
 
 interface ILendingPool {
     function deposit(address asset, uint256 amount, address onBehalfOf, uint16 referralCode) external;
     function withdraw(address asset, uint256 amount, address to) external returns (uint256);
 }
 
-contract RemoteHub is Ownable {
+contract RemoteHub is Ownable, ReentrancyGuard, Pausable {
     using SafeERC20 for IERC20;
 
     ILendingPool public lendingPool;
@@ -22,6 +24,8 @@ contract RemoteHub is Ownable {
     event ReactiveNetworkUpdated(address indexed newNetwork);
     event FundsRecovered(address indexed token, address indexed to, uint256 amount);
     event ReactiveCallbackReceived(string action, bytes params);
+    event EmergencyPaused(address indexed by);
+    event EmergencyUnpaused(address indexed by);
 
     constructor() Ownable(msg.sender) {}
 
@@ -53,13 +57,29 @@ contract RemoteHub is Ownable {
         reactiveNetwork = _network;
         emit ReactiveNetworkUpdated(_network);
     }
+    
+    /**
+     * @notice Emergency pause mechanism
+     */
+    function pause() external onlyOwner {
+        _pause();
+        emit EmergencyPaused(msg.sender);
+    }
+    
+    /**
+     * @notice Unpause the contract
+     */
+    function unpause() external onlyOwner {
+        _unpause();
+        emit EmergencyUnpaused(msg.sender);
+    }
 
     /**
      * @notice Callback for Reactive Network to trigger rebalancing or other actions
      * @param action The action type
      * @param params ABI-encoded parameters
      */
-    function callback(string calldata action, bytes calldata params) external {
+    function callback(string calldata action, bytes calldata params) external whenNotPaused {
         require(msg.sender == reactiveNetwork, "RemoteHub: Unauthorized callback source");
         
         emit ReactiveCallbackReceived(action, params);
@@ -114,7 +134,7 @@ contract RemoteHub is Ownable {
      * @notice Execute a lending deposit to the configured lending pool
      * @param params ABI-encoded (asset, amount) tuple
      */
-    function _executeLend(bytes memory params) internal {
+    function _executeLend(bytes memory params) internal nonReentrant {
         require(address(lendingPool) != address(0), "RemoteHub: Lending pool not set");
         
         (address asset, uint256 amount) = abi.decode(params, (address, uint256));
@@ -139,7 +159,7 @@ contract RemoteHub is Ownable {
      * @notice Execute a withdrawal from the lending pool
      * @param params ABI-encoded (asset, amount, recipient) tuple
      */
-    function _executeWithdraw(bytes memory params) internal {
+    function _executeWithdraw(bytes memory params) internal nonReentrant {
         require(address(lendingPool) != address(0), "RemoteHub: Lending pool not set");
         
         (address asset, uint256 amount, address recipient) = abi.decode(params, (address, uint256, address));
@@ -168,12 +188,20 @@ contract RemoteHub is Ownable {
     function _executeOptimize() internal {
         require(vault != address(0), "RemoteHub: Vault not set");
         
-        // Call checkYieldAndRebalance on the vault
-        // We use low-level call because we don't want to import the vault interface 
-        // to keep RemoteHub generic, but for the demo we can just use the signature.
-        (bool success, ) = vault.call(abi.encodeWithSignature("checkYieldAndRebalance()"));
+        // Call checkYieldAndRebalance on the vault with proper validation
+        (bool success, bytes memory returnData) = vault.call(abi.encodeWithSignature("checkYieldAndRebalance()"));
         
-        emit ActionExecuted("OPTIMIZE", success, "");
+        if (!success) {
+            // If call failed, check if it was due to revert
+            if (returnData.length > 0) {
+                // Decode revert reason if available
+                emit ActionExecuted("OPTIMIZE_FAILED", false, returnData);
+            } else {
+                emit ActionExecuted("OPTIMIZE_FAILED", false, "");
+            }
+        } else {
+            emit ActionExecuted("OPTIMIZE", true, "");
+        }
     }
 
     /**

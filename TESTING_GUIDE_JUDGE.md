@@ -48,7 +48,11 @@ Before starting, ensure you have:
 - The simulator will trigger the rebalance.
 - **Verification**: Refresh the **Strategy Monitor**. You will see the funds have moved from Pool A (now 2%) to Pool C (now 30%).
 
----
+### Step 5: Agentic Strategy Control
+- Scroll to the **Agentic Intent Builder** (the command bar).
+- Type: `Set threshold to 2%` and click **"Send Intent"**.
+- **Observation**: A MetaMask transaction will pop up to update the `ReactiveNexus` contract. Once confirmed, the dashboard's "Rebalance Threshold" (in the Strategy Monitor) will update to **2%**.
+- This demonstrates how complex on-chain parameters are managed via simple natural language intents.
 
 ## 📊 Technical Context for Judges
 
@@ -57,10 +61,10 @@ To ensure extreme precision and avoid decimal errors, all protocol yields are ha
 - `100 bps = 1.00%`
 - Our `yieldThreshold` is set to `100 bps`. The system will *only* rebalance if it finds a pool at least **1%** better than the current one, preventing "yield chasing" through high-gas volatility.
 
-### 2. The Reactive Advantage
-While we provide a "Manual Trigger" in the demo to skip the 30-second cross-chain relay latency, in a production environment:
-- **No User Input**: The Rebalancer on the **Lasna Network** is a persistent, autonomous actor.
-- **Event Driven**: It listens for `RateUpdated` events globally and "reacts" by calling the `RemoteHub` callback on Sepolia.
+### 2. The Reactive Advantage (Demo Honest Note)
+While our architecture is fully automated, cross-chain relays on the **Lasna Network** typically take 30–60 seconds to execute:
+- **Production**: The Rebalancer is a persistent, autonomous actor. No user input is required.
+- **This Demo (Fast-track)**: To ensure a smooth presentation, clicking the "Simulator" or "Demo" buttons triggers the rebalance logic *immediately*. This demonstrates the **logic and state movement** without making you wait in front of a loading spinner.
 
 ---
 

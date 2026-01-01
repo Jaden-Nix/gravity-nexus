@@ -13,20 +13,40 @@ interface INexusVault {
 contract ReactiveNexus is Ownable {
     INexusVault public nexusVault;
     uint256 public yieldThreshold = 100; // 1% difference in basis points (100 = 1%)
+    mapping(address => bool) public authorizedCallers;
 
     event ActionTriggered(string action, uint256 fromIdx, uint256 toIdx, uint256 amount);
     event ActionExecuted(string result);
     event YieldThresholdUpdated(uint256 newThreshold);
+    event AuthorizationUpdated(address indexed caller, bool status);
 
     constructor() Ownable(msg.sender) {}
+    
+    modifier onlyAuthorized() {
+        require(authorizedCallers[msg.sender] || msg.sender == owner(), "ReactiveNexus: Unauthorized caller");
+        _;
+    }
+    
+    /**
+     * @notice Set authorization for a caller
+     * @param _caller Address to authorize/deauthorize
+     * @param _status Authorization status
+     */
+    function setAuthorization(address _caller, bool _status) external onlyOwner {
+        require(_caller != address(0), "ReactiveNexus: Invalid caller address");
+        authorizedCallers[_caller] = _status;
+        emit AuthorizationUpdated(_caller, _status);
+    }
 
     /**
      * @notice Checks yields across all adapters and rebalances if a better opportunity is found.
      * @dev This can be called by a Reactive Network "react" entry point or a periodic automation.
+     * @param amountToMove Maximum amount to move in a single rebalance
      */
-    function checkYieldAndRebalance(uint256 amountToMove) external {
+    function checkYieldAndRebalance(uint256 amountToMove) external onlyAuthorized {
+        require(amountToMove > 0, "ReactiveNexus: Amount must be > 0");
         uint256 count = nexusVault.getAdaptersCount();
-        require(count >= 2, "Need at least 2 adapters");
+        require(count >= 2, "ReactiveNexus: Need at least 2 adapters");
 
         uint256 bestAdapterIdx = 0;
         uint256 highestYield = 0;
@@ -68,10 +88,12 @@ contract ReactiveNexus is Ownable {
     }
 
     function setVault(address _vault) external onlyOwner {
+        require(_vault != address(0), "ReactiveNexus: Invalid vault address");
         nexusVault = INexusVault(_vault);
     }
 
     function setYieldThreshold(uint256 _threshold) external onlyOwner {
+        require(_threshold <= 10000, "ReactiveNexus: Threshold too high");
         yieldThreshold = _threshold;
         emit YieldThresholdUpdated(_threshold);
     }

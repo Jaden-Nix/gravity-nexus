@@ -2,21 +2,28 @@
 pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
 import "./interfaces/ILendingAdapter.sol";
 
-contract NexusVault is Ownable {
+contract NexusVault is Ownable, ReentrancyGuard, Pausable {
+    using SafeERC20 for IERC20;
+    
     IERC20 public immutable asset;
     ILendingAdapter[] public adapters;
     mapping(address => bool) public authorizedCallers;
     uint256 public yieldThresholdBps = 50; // 0.5% in basis points (100 = 1%)
 
-    event Deposited(address indexed user, uint256 amount, uint256 adapterIdx);
+    event Deposited(address indexed user, uint256 amount, uint256 indexed adapterIdx);
     event Withdrawn(address indexed user, uint256 amount);
-    event Rebalanced(uint256 fromIdx, uint256 toIdx, uint256 amount);
+    event Rebalanced(uint256 indexed fromIdx, uint256 indexed toIdx, uint256 amount);
     event AdapterAdded(address indexed adapter, uint256 index);
     event AuthorizationUpdated(address indexed caller, bool status);
     event ThresholdUpdated(uint256 newThreshold);
+    event EmergencyPaused(address indexed by);
+    event EmergencyUnpaused(address indexed by);
 
     constructor(address _asset) Ownable(msg.sender) {
         asset = IERC20(_asset);
@@ -33,15 +40,31 @@ contract NexusVault is Ownable {
     }
 
     function setYieldThreshold(uint256 _thresholdBps) external onlyOwner {
+        require(_thresholdBps <= 10000, "Vault: Threshold too high");
         yieldThresholdBps = _thresholdBps;
         emit ThresholdUpdated(_thresholdBps);
     }
 
     function addAdapter(address _adapter) external onlyOwner {
+        require(_adapter != address(0), "Vault: Invalid adapter address");
         adapters.push(ILendingAdapter(_adapter));
-        // One-time Max Approval for best practice
-        asset.approve(_adapter, type(uint256).max);
         emit AdapterAdded(_adapter, adapters.length - 1);
+    }
+    
+    /**
+     * @notice Emergency pause mechanism
+     */
+    function pause() external onlyOwner {
+        _pause();
+        emit EmergencyPaused(msg.sender);
+    }
+    
+    /**
+     * @notice Unpause the contract
+     */
+    function unpause() external onlyOwner {
+        _unpause();
+        emit EmergencyUnpaused(msg.sender);
     }
 
     /**
@@ -62,26 +85,32 @@ contract NexusVault is Ownable {
 
     /**
      * @notice Deposit into the highest yielding pool automatically
+     * @param amount Amount of tokens to deposit
      */
-    function deposit(uint256 amount) external {
-        asset.transferFrom(msg.sender, address(this), amount);
-        require(adapters.length > 0, "No adapters added");
+    function deposit(uint256 amount) external nonReentrant whenNotPaused {
+        require(amount > 0, "Vault: Amount must be > 0");
+        require(adapters.length > 0, "Vault: No adapters added");
+        
+        asset.safeTransferFrom(msg.sender, address(this), amount);
         
         (uint256 bestIdx, ) = getBestAdapterIdx();
         
-        // No need to approve here as we approve MAX in addAdapter
+        // Approve only the amount needed for this deposit
+        asset.safeIncreaseAllowance(address(adapters[bestIdx]), amount);
         adapters[bestIdx].deposit(amount);
+        
         emit Deposited(msg.sender, amount, bestIdx);
     }
 
     /**
      * @notice Intelligent withdrawal that scans all adapters for liquidity
-     * Starts with highest yielding pools to minimize opportunity cost
+     * @param amount Amount of tokens to withdraw
      */
-    function withdraw(uint256 amount) external {
-        uint256 count = adapters.length;
-        require(count > 0, "No adapters added");
+    function withdraw(uint256 amount) external nonReentrant whenNotPaused {
+        require(amount > 0, "Vault: Amount must be > 0");
+        require(adapters.length > 0, "Vault: No adapters added");
         
+        uint256 count = adapters.length;
         uint256 remaining = amount;
         
         // Simple scan: withdraw from any pool that has funds
@@ -95,16 +124,17 @@ contract NexusVault is Ownable {
         }
         
         require(remaining == 0, "Vault: Insufficient liquidity");
-        asset.transfer(msg.sender, amount);
+        asset.safeTransfer(msg.sender, amount);
         emit Withdrawn(msg.sender, amount);
     }
 
-    function rebalance(uint256 fromIdx, uint256 toIdx, uint256 amount) public onlyAuthorized {
+    function rebalance(uint256 fromIdx, uint256 toIdx, uint256 amount) public onlyAuthorized nonReentrant whenNotPaused {
         _rebalance(fromIdx, toIdx, amount);
     }
 
     function _rebalance(uint256 fromIdx, uint256 toIdx, uint256 amount) internal {
         require(fromIdx < adapters.length && toIdx < adapters.length, "Vault: Invalid adapter index");
+        require(fromIdx != toIdx, "Vault: Cannot rebalance to same adapter");
         
         uint256 sourceBalance = adapters[fromIdx].totalAssets();
         uint256 actualWithdraw = amount > sourceBalance ? sourceBalance : amount;
@@ -112,7 +142,9 @@ contract NexusVault is Ownable {
         require(actualWithdraw > 0, "Vault: No assets to rebalance from source");
 
         adapters[fromIdx].withdraw(actualWithdraw);
-        // No need to approve as it's pre-approved to MAX
+        
+        // Approve only the amount needed for this rebalance
+        asset.safeIncreaseAllowance(address(adapters[toIdx]), actualWithdraw);
         adapters[toIdx].deposit(actualWithdraw);
         
         emit Rebalanced(fromIdx, toIdx, actualWithdraw);
@@ -123,7 +155,7 @@ contract NexusVault is Ownable {
      * @dev AUTHORIZED ONLY - Called by RemoteHub via Reactive Network automation
      *      This keeps rebalancing trustless (automated) but not public (MEV-protected)
      */
-    function checkYieldAndRebalance() external onlyAuthorized {
+    function checkYieldAndRebalance() external onlyAuthorized nonReentrant whenNotPaused {
         uint256 count = adapters.length;
         if (count < 2) return;
 

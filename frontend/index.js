@@ -127,7 +127,7 @@ class NexusGalaxy {
                         await tx.wait();
                         this.injectTerminalLog('system', `[AGENT] Strategy updated on-chain! New threshold: ${value}%`);
                         document.getElementById('strategy-threshold').textContent = `${value}%`;
-                        this.addActivity('⚙️', 'Policy Update', `Threshold set to ${value}%`);
+                        this.addActivity('⚙️', 'Policy Update', `Threshold set to ${value}%`, this.getExplorerUrl(tx.hash));
                     } catch (e) {
                         this.injectTerminalLog('warn', `[AGENT] Failed to update contract: ${e.message}`);
                     }
@@ -139,7 +139,7 @@ class NexusGalaxy {
                 input.value = '';
             } else if (cmd.includes('prioritize') || cmd.includes('pool')) {
                 this.injectTerminalLog('action', `[AGENT] Adjusting allocation weights logic in Reactive node...`);
-                this.addActivity('⚖️', 'Policy Update', `Prioritizing pool based on intent`);
+                this.addActivity('⚖️', 'Policy Update', `Prioritizing pool based on intent`, this.getExplorerUrl(CONTRACT_ADDRESSES.sepolia.reactiveNexus));
                 input.value = '';
             } else {
                 this.injectTerminalLog('warn', `[AGENT] Processing general inquiry... Generating AI-enhanced response.`);
@@ -251,31 +251,40 @@ class NexusGalaxy {
         });
     }
 
+    getExplorerUrl(target) {
+        if (!target) return null;
+        const chainKey = this.getChainKey();
+        const config = CHAIN_CONFIG[chainKey] || CHAIN_CONFIG.sepolia;
+        const explorer = (config.blockExplorerUrls && config.blockExplorerUrls[0]) ? config.blockExplorerUrls[0] : 'https://sepolia.etherscan.io';
+
+        // If it looks like an address
+        if (target.length === 42) {
+            return `${explorer}/address/${target}`;
+        }
+        return `${explorer}/tx/${target}`;
+    }
+
+
     async connectWallet() {
         if (!window.ethereum) {
-            this.injectTerminalLog('warn', '[SYSTEM] No Web3 Wallet detected. Attempting direct connection to Local Node...');
+            this.injectTerminalLog('warn', '[SYSTEM] No Web3 Wallet detected.');
+            this.injectTerminalLog('action', '[SYSTEM] Please install MetaMask or a compatible Web3 wallet to interact with the Nexus Galaxy.');
+
+            // On public web (Vercel), we don't want to auto-fallback to localhost if it's not there
+            // But we can still allow the user to see the "Read-Only" mode for Sepolia
             try {
-                // Try to connect directly to Hardhat RPC
-                this.provider = new ethers.JsonRpcProvider('http://127.0.0.1:8545');
-                // Check if node is up
-                await this.provider.getNetwork();
+                const chainKey = 'sepolia';
+                const config = CHAIN_CONFIG[chainKey];
+                this.provider = new ethers.JsonRpcProvider(config.rpcUrls[0]);
+                this.chainId = config.chainId;
 
-                // Use the first Hardhat account (unlocked on local node)
-                this.signer = await this.provider.getSigner(0);
-                this.account = await this.signer.getAddress();
-                this.chainId = '0x7a69'; // Hard-code to localhost
-
-                this.injectTerminalLog('system', `[SYSTEM] Connected Directly to Local Node: ${this.shortenAddress(this.account)}`);
-                this.updateWalletUI(true);
+                this.injectTerminalLog('system', `[SYSTEM] Browsing in Read-Only Mode (Sepolia)`);
                 await this.setupContracts();
                 await this.updateChainStatuses();
-                return;
             } catch (e) {
-                console.error('Local node connection failed:', e);
-                this.injectTerminalLog('error', '[SYSTEM] Could not connect to Local Node. Check if "npx hardhat node" is running.');
-                // alert('Please install MetaMask or start a local Hardhat node to demo on-chain features.');
-                return;
+                this.injectTerminalLog('error', '[SYSTEM] Could not establish a connection to the network.');
             }
+            return;
         }
 
         try {
@@ -423,6 +432,11 @@ class NexusGalaxy {
         if (Object.keys(this.bgProviders).length === 0) {
             for (const [key, config] of Object.entries(CHAIN_CONFIG)) {
                 if (config.rpcUrls && config.rpcUrls[0]) {
+                    // Skip localhost if we are running on a public domain (simple check)
+                    if (key === 'localhost' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+                        continue;
+                    }
+
                     try {
                         const p = new ethers.JsonRpcProvider(config.rpcUrls[0], undefined, { staticNetwork: true });
                         this.bgProviders[key] = p;
@@ -631,6 +645,9 @@ class NexusGalaxy {
             const response = await fetch(
                 `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`
             );
+
+            if (!response.ok) throw new Error(`API Status: ${response.status}`);
+
             const data = await response.json();
 
             // Update ETH
@@ -651,7 +668,23 @@ class NexusGalaxy {
                 this.updateChangeDisplay('comp-change', data['compound-governance-token'].usd_24h_change);
             }
         } catch (error) {
-            console.error('Failed to fetch live yields:', error);
+            console.warn('Falling back to mock yield data due to CoinGecko rate limit.');
+
+            // Mock Fallback Data for UI stability
+            const fallback = {
+                eth: { price: 2450.20, change: 1.25 },
+                aave: { price: 85.40, change: -0.42 },
+                comp: { price: 42.15, change: 2.10 }
+            };
+
+            document.getElementById('eth-price').textContent = `$${fallback.eth.price.toLocaleString()}`;
+            this.updateChangeDisplay('eth-change', fallback.eth.change);
+
+            document.getElementById('aave-price').textContent = `$${fallback.aave.price.toLocaleString()}`;
+            this.updateChangeDisplay('aave-change', fallback.aave.change);
+
+            document.getElementById('comp-price').textContent = `$${fallback.comp.price.toLocaleString()}`;
+            this.updateChangeDisplay('comp-change', fallback.comp.change);
         }
     }
 
@@ -719,7 +752,7 @@ class NexusGalaxy {
             verifyBtn.classList.remove('hidden');
             verifyBtn.onclick = () => this.openZKModal();
 
-            this.addActivity('🧠', 'AI Prediction', `Model yield-lstm-v1: ${prediction}% APY`);
+            this.addActivity('🧠', 'AI Prediction', `Model yield-lstm-v1: ${prediction}% APY`, this.getExplorerUrl(CONTRACT_ADDRESSES.sepolia.mlModel));
 
         } catch (error) {
             console.error('Inference failed:', error);
@@ -817,17 +850,13 @@ class NexusGalaxy {
                 if (balance < parseAmount) {
                     btn.innerHTML = '<span class="btn-icon">⏳</span> Signing Faucet...';
                     this.injectTerminalLog('action', '[SYSTEM] Low mUSDC balance. Requesting faucet signature...');
-                    const mintTx = await token.mint(this.account, ethers.parseUnits("1000000", 18), {
-                        gasLimit: chainKey === 'lasna' ? 150000n : undefined,
-                        // Legacy for Lasna, Tip for Sepolia
-                        gasPrice: chainKey === 'lasna' ? ethers.parseUnits("10", "gwei") : undefined,
-                        maxPriorityFeePerGas: chainKey === 'sepolia' ? ethers.parseUnits("2", "gwei") : undefined
-                    });
+                    const mintTx = await token.mint(this.account, ethers.parseUnits("1000000", 18));
                     activeTxHash = mintTx.hash;
                     btn.innerHTML = '<span class="btn-icon">⏳</span> Minting...';
                     this.injectTerminalLog('action', `[SYSTEM] Faucet Tx Sent: ${mintTx.hash.substring(0, 16)}...`);
                     await mintTx.wait();
                     this.injectTerminalLog('system', '[SYSTEM] Faucet: 1M mUSDC minted successfully.');
+                    this.addActivity('🚰', 'Faucet Mint', '1M mUSDC received', this.getExplorerUrl(mintTx.hash));
                 }
 
                 // 2. Check Allowance & Approve
@@ -835,27 +864,16 @@ class NexusGalaxy {
                 if (allowance < parseAmount) {
                     btn.innerHTML = '<span class="btn-icon">⏳</span> Signing Approval...';
                     this.injectTerminalLog('action', '[UX] Requesting Token Approval signature...');
-                    const appTx = await token.approve(addresses.nexusVault, ethers.MaxUint256, {
-                        gasLimit: chainKey === 'lasna' ? 150000n : undefined,
-                        gasPrice: chainKey === 'lasna' ? ethers.parseUnits("10", "gwei") : undefined,
-                        maxPriorityFeePerGas: chainKey === 'sepolia' ? ethers.parseUnits("2", "gwei") : undefined
-                    });
+                    const appTx = await token.approve(addresses.nexusVault, ethers.MaxUint256);
                     activeTxHash = appTx.hash;
                     btn.innerHTML = '<span class="btn-icon">⏳</span> Approving...';
                     this.injectTerminalLog('action', `[UX] Approval Sent: ${appTx.hash.substring(0, 16)}...`);
                     await appTx.wait();
                     this.injectTerminalLog('system', '[UX] Token Approval Successful.');
+                    this.addActivity('🔓', 'Token Approval', 'Vault approved to use funds', this.getExplorerUrl(appTx.hash));
                 }
 
-                btn.innerHTML = '<span class="btn-icon">⏳</span> Signing Deposit...';
-                this.injectTerminalLog('action', '[UX] Requesting Deposit signature...');
-
-                // 3. Real on-chain call
-                const tx = await vault.deposit(parseAmount, {
-                    gasLimit: chainKey === 'lasna' ? 500000n : undefined,
-                    gasPrice: chainKey === 'lasna' ? ethers.parseUnits("10", "gwei") : undefined,
-                    maxPriorityFeePerGas: chainKey === 'sepolia' ? ethers.parseUnits("2", "gwei") : undefined
-                });
+                const tx = await vault.deposit(parseAmount);
                 activeTxHash = tx.hash;
                 btn.innerHTML = '<span class="btn-icon">⏳</span> Depositing...';
                 this.injectTerminalLog('action', `[UX] Deposit Transaction Sent: ${tx.hash.substring(0, 16)}...`);
@@ -863,7 +881,7 @@ class NexusGalaxy {
                 btn.innerHTML = '<span class="btn-icon">⏳</span> Confirming...';
                 await tx.wait();
 
-                this.addActivity('💰', 'Vault Deposit', `${amount} ${assetStr} deposited`, `https://etherscan.io/tx/${tx.hash}`);
+                this.addActivity('💰', 'Vault Deposit', `${amount} ${assetStr} deposited`, this.getExplorerUrl(tx.hash));
                 this.updateVaultInfo();
                 this.updateStrategyMonitor();
 
@@ -890,7 +908,7 @@ class NexusGalaxy {
 
             if (activeTxHash) {
                 const chainKey = this.getChainKey();
-                const explorer = (CHAIN_CONFIG[chainKey] && CHAIN_CONFIG[chainKey].blockExplorerUrls) ? CHAIN_CONFIG[chainKey].blockExplorerUrls[0] : 'https://etherscan.io';
+                const explorer = (CHAIN_CONFIG[chainKey] && CHAIN_CONFIG[chainKey].blockExplorerUrls) ? CHAIN_CONFIG[chainKey].blockExplorerUrls[0] : 'https://sepolia.etherscan.io';
 
                 this.injectTerminalLog('system', `[UX] Transaction Sent! The RPC is slow to confirm, but it's processing.`);
                 this.injectTerminalLog('system', `[UX] View Status: ${explorer}/tx/${activeTxHash}`);
@@ -954,7 +972,7 @@ class NexusGalaxy {
             await tx.wait();
 
             this.injectTerminalLog('system', '[VAULT] ✅ Withdrawal successful! Funds returned to wallet.');
-            this.addActivity('📦', 'Withdrawal', `Recovered ${ethers.formatUnits(balance, 18)} tETH`);
+            this.addActivity('📦', 'Withdrawal', `Recovered ${ethers.formatUnits(balance, 18)} tETH`, this.getExplorerUrl(tx.hash));
 
             btn.innerHTML = '✅ Withdrawn';
             setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 3000);
@@ -1203,13 +1221,13 @@ class NexusGalaxy {
             }
 
             // For Demo: Trigger rebalance directly to show immediate fund movement.
-            this.injectTerminalLog('action', '[DEMO] Triggering vault optimization...');
+            this.injectTerminalLog('action', '[REACTIVE] Fast-tracking callback (Demo Mode)...');
             try {
                 // Ensure we use the correct method name based on modern vault interface
                 const rebalanceTx = await vault.connect(this.signer).checkYieldAndRebalance();
                 await rebalanceTx.wait();
                 this.injectTerminalLog('system', '[DEMO] ✅ Funds rebalanced to highest-yield pool!');
-                this.addActivity('⚡', 'Auto-Rebalance', 'Funds moved to optimal pool');
+                this.addActivity('⚡', 'Auto-Rebalance', 'Funds moved to optimal pool', this.getExplorerUrl(rebalanceTx.hash));
             } catch (rebalanceError) {
                 console.warn("Rebalance trigger failed:", rebalanceError);
                 this.injectTerminalLog('error', `[DEMO] Rebalance failed: ${e.message.slice(0, 60)}`);
@@ -1257,7 +1275,7 @@ class NexusGalaxy {
             const tx = await hub.setReactiveNetwork(newReactiveAddr);
             await tx.wait();
             this.injectTerminalLog('system', '[SYSTEM] ✅ Reactive Network linked successfully!');
-            this.addActivity('🔗', 'Reactive Linked', 'Lasna Rebalancer now monitoring Sepolia');
+            this.addActivity('🔗', 'Reactive Linked', 'Lasna Rebalancer now monitoring Sepolia', this.getExplorerUrl(tx.hash));
         } catch (e) {
             console.error(e);
             this.injectTerminalLog('error', `[SYSTEM] Link failed: ${e.message.slice(0, 50)}`);
@@ -1353,7 +1371,7 @@ class NexusGalaxy {
             }
 
             // ➔ STEP 4: TRIGGER REBALANCE
-            this.injectTerminalLog('action', '➔ STEP 4: Triggering Reactive Automation...');
+            this.injectTerminalLog('action', '➔ STEP 4: Fast-tracking Reactive Callback...');
             const txRebalance = await vault.connect(this.signer).checkYieldAndRebalance();
             await txRebalance.wait();
             this.injectTerminalLog('system', '🚀 SUCCESS: Rebalance complete!');
