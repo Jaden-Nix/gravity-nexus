@@ -111,7 +111,15 @@ const ABIS = {
         "event ModelUpdated(string indexed newModelId, bytes32 newModelHash, uint256 timestamp)"
     ],
     ZKMLVerifier: [
-        "function verify(bytes calldata proof, bytes calldata instances, bytes calldata output) pure returns (bool)"
+        "function verify(bytes32 modelId, bytes calldata proof, uint256[] calldata publicInputs) returns (bool)",
+        "function registerVerificationKey(bytes32 modelId, tuple(uint256[2] alpha, uint256[2][2] beta, uint256[2][2] gamma, uint256[2][2] delta, uint256[2][] ic, bool isActive) vk, string memory metadata)",
+        "function deactivateModel(bytes32 modelId)",
+        "function isModelActive(bytes32 modelId) view returns (bool)",
+        "function getModelMetadata(bytes32 modelId) view returns (string)",
+        "event VerificationKeyRegistered(bytes32 indexed modelId, string metadata)",
+        "event ProofVerified(bytes32 indexed modelId, bytes32 indexed proofHash, bool success)",
+        "event VerificationAttempted(address indexed caller, bytes32 indexed modelId)",
+        "event ModelDeactivated(bytes32 indexed modelId)"
     ]
 };
 

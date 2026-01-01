@@ -15,6 +15,7 @@ contract NexusVault is Ownable, ReentrancyGuard, Pausable {
     ILendingAdapter[] public adapters;
     mapping(address => bool) public authorizedCallers;
     uint256 public yieldThresholdBps = 50; // 0.5% in basis points (100 = 1%)
+    uint256 public constant MAX_ADAPTERS = 20; // Prevent DoS via excessive loops
 
     event Deposited(address indexed user, uint256 amount, uint256 indexed adapterIdx);
     event Withdrawn(address indexed user, uint256 amount);
@@ -47,6 +48,7 @@ contract NexusVault is Ownable, ReentrancyGuard, Pausable {
 
     function addAdapter(address _adapter) external onlyOwner {
         require(_adapter != address(0), "Vault: Invalid adapter address");
+        require(adapters.length < MAX_ADAPTERS, "Vault: Max adapters reached");
         adapters.push(ILendingAdapter(_adapter));
         emit AdapterAdded(_adapter, adapters.length - 1);
     }
@@ -74,7 +76,7 @@ contract NexusVault is Ownable, ReentrancyGuard, Pausable {
         uint256 count = adapters.length;
         if (count == 0) return (0, 0);
         
-        for (uint256 i = 0; i < count; i++) {
+        for (uint256 i; i < count; ++i) {
             uint256 rate = adapters[i].getSupplyRate();
             if (rate > highestRate) {
                 highestRate = rate;
@@ -114,7 +116,7 @@ contract NexusVault is Ownable, ReentrancyGuard, Pausable {
         uint256 remaining = amount;
         
         // Simple scan: withdraw from any pool that has funds
-        for (uint256 i = 0; i < count && remaining > 0; i++) {
+        for (uint256 i; i < count && remaining > 0; ++i) {
             uint256 poolBalance = adapters[i].totalAssets();
             if (poolBalance > 0) {
                 uint256 toWithdraw = remaining > poolBalance ? poolBalance : remaining;
@@ -162,7 +164,7 @@ contract NexusVault is Ownable, ReentrancyGuard, Pausable {
         (uint256 bestIdx, uint256 highestRate) = getBestAdapterIdx();
 
         // Check every other pool
-        for (uint256 i = 0; i < count; i++) {
+        for (uint256 i; i < count; ++i) {
             if (i == bestIdx) continue;
             
             uint256 balance = adapters[i].totalAssets();
@@ -180,7 +182,8 @@ contract NexusVault is Ownable, ReentrancyGuard, Pausable {
      * @notice Total assets managed by this vault across all pools
      */
     function totalAssets() external view returns (uint256 total) {
-        for (uint256 i = 0; i < adapters.length; i++) {
+        uint256 length = adapters.length;
+        for (uint256 i; i < length; ++i) {
             total += adapters[i].totalAssets();
         }
     }

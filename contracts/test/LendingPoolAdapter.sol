@@ -2,9 +2,12 @@
 pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../interfaces/ILendingAdapter.sol";
 
 contract LendingPoolAdapter is ILendingAdapter {
+    using SafeERC20 for IERC20;
+    
     IERC20 public immutable underlying;
     uint256 public balance;
 
@@ -13,7 +16,7 @@ contract LendingPoolAdapter is ILendingAdapter {
     }
 
     function deposit(uint256 amount) external override returns (uint256) {
-        underlying.transferFrom(msg.sender, address(this), amount);
+        underlying.safeTransferFrom(msg.sender, address(this), amount);
         balance += amount;
         return amount;
     }
@@ -21,7 +24,7 @@ contract LendingPoolAdapter is ILendingAdapter {
     function withdraw(uint256 amount) external override returns (uint256) {
         require(balance >= amount, "Insufficient balance");
         balance -= amount;
-        underlying.transfer(msg.sender, amount);
+        underlying.safeTransfer(msg.sender, amount);
         return amount;
     }
 

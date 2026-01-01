@@ -2,6 +2,7 @@
 pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "./interfaces/ILendingAdapter.sol";
 
 interface INexusVault {
@@ -10,7 +11,7 @@ interface INexusVault {
     function getAdaptersCount() external view returns (uint256);
 }
 
-contract ReactiveNexus is Ownable {
+contract ReactiveNexus is Ownable, ReentrancyGuard {
     INexusVault public nexusVault;
     uint256 public yieldThreshold = 100; // 1% difference in basis points (100 = 1%)
     mapping(address => bool) public authorizedCallers;
@@ -43,7 +44,8 @@ contract ReactiveNexus is Ownable {
      * @dev This can be called by a Reactive Network "react" entry point or a periodic automation.
      * @param amountToMove Maximum amount to move in a single rebalance
      */
-    function checkYieldAndRebalance(uint256 amountToMove) external onlyAuthorized {
+    function checkYieldAndRebalance(uint256 amountToMove) external onlyAuthorized nonReentrant {
+        require(address(nexusVault) != address(0), "ReactiveNexus: Vault not set");
         require(amountToMove > 0, "ReactiveNexus: Amount must be > 0");
         uint256 count = nexusVault.getAdaptersCount();
         require(count >= 2, "ReactiveNexus: Need at least 2 adapters");
@@ -52,7 +54,7 @@ contract ReactiveNexus is Ownable {
         uint256 highestYield = 0;
         
         // 1. Find the absolute best yielding pool
-        for (uint256 i = 0; i < count; i++) {
+        for (uint256 i; i < count; ++i) {
             uint256 rate = ILendingAdapter(nexusVault.adapters(i)).getSupplyRate();
             if (rate > highestYield) {
                 highestYield = rate;
@@ -61,7 +63,7 @@ contract ReactiveNexus is Ownable {
         }
 
         // 2. Iterate through all pools and move sub-optimal funds
-        for (uint256 i = 0; i < count; i++) {
+        for (uint256 i; i < count; ++i) {
             if (i == bestAdapterIdx) continue;
             
             ILendingAdapter sourceAdapter = ILendingAdapter(nexusVault.adapters(i));
